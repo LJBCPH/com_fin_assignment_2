@@ -1,0 +1,238 @@
+---
+title: "Computational Finance Assignment II"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Libraries
+```{r}
+library(dplyr)
+library(matlib)
+source("helper_functions.R")
+```
+
+## S.1 - Figure 2
+```{r, fig.width = 3, fig.height = 3}
+set.seed(3)
+
+K <- 1
+d <- 1
+Tt <- 1
+sigma <- 0.2
+num_ite <- 10000
+call_prices <- c(rep(0, num_ite))
+rand_norm_0 <- rnorm(num_ite)
+rand_norm_T <- rnorm(num_ite)
+
+# Simulated call prices
+S_0 <- K + d * sigma * sqrt(Tt) * rand_norm_0
+S_0 <- S_0 %>% as_tibble() %>% arrange(value) %>% pull()
+S_T <- S_0 + sigma * sqrt(Tt) * rand_norm_T
+
+call_prices <- sapply(S_T, FUN = function(x)max(x - K, 0))
+
+# LM
+call_simulations <- cbind(S_0, call_prices) %>% 
+  as_data_frame()
+est_pricing_func <- lm(call_prices ~ poly(S_0, 7, raw=TRUE), data = call_simulations)
+
+# True pricing function
+true_pricing_function <- function(S0, Tt, K, sigma){
+  d <- (S0-K)/(sigma*Tt)
+  return((S0-K)*pnorm(d)+sigma*sqrt(Tt)*dnorm(d))
+}
+
+true_prices <- true_pricing_function(S_0, Tt, K, sigma)
+S_0_to_plot <- S_0 
+
+plot(x = S_0, y = call_prices, 
+       col = 'grey',
+       ylab = "Call value",
+       xlab = "Stock price") + 
+    lines(S_0_to_plot, 
+          est_pricing_func$fitted.values, col = 'red', type = 'l') + 
+    lines(S_0_to_plot, 
+          true_prices, 
+          type = 'l')
+
+# estimated derrivatives
+est_derr_pricing_function <- function(coefs, S0){
+  S0_6 <- poly(S0, 6, raw = TRUE)
+  return((S0_6 %*% (c(2:7) * coefs[2:7])) + coefs[1])
+}
+
+
+derr_pricing_func_val <- est_derr_pricing_function(est_pricing_func$coefficients[-1],
+                                                   S_0_to_plot)
+
+# actual derrivatives
+true_derr <- pnorm((S_0-K)/(sigma * sqrt(Tt)))
+
+plot(S_0_to_plot, 
+  derr_pricing_func_val, 
+  type = 'l',
+  col = 'red',
+  ylab = "Call Delta",
+  xlab = "Stock price", add = TRUE) + 
+  lines(S_0_to_plot,
+        true_derr)
+```
+
+## S.1 - Figure 3
+```{r, fig.width = 3, fig.height = 3}
+# D <- S_T %>% 
+#   as_tibble() %>% 
+#   transmute(D_val = ifelse(value >= K, 1, 0)) %>% 
+#   pull()
+# 
+# zeroes <- c(rep(0, length(S_0))) %>% 
+#   as_tibble() %>% 
+#   rename(zeroes = value)
+# ones <- c(rep(1, length(S_0))) %>% 
+#   as_tibble() %>% 
+#   rename(ones = value)
+# X <- ones %>%
+#   bind_cols(poly(S_0, 7, raw=TRUE) %>%
+#   as_tibble()) %>%
+#   as.matrix()
+# 
+# poly_6 <- poly(S_0, 6, raw=TRUE)
+# Y <- zeroes %>% 
+#   bind_cols(ones) %>% 
+#   bind_cols(poly_6) %>% 
+#   as.matrix()
+# 
+# for(i in 1:8){
+#   Y[,i] <- Y[,i] * (i-1)
+# }
+# 
+# crit <- function(w, C, D, coefs){
+#   C_est <- c_xs %*% coefs
+#   D_est <- d_xs %*% coefs[-1]
+#   first_part <- (C - C_est)^2
+#   second_part <- (D - D_est)^2
+#   return(w * sum(first_part) + (1-w) * sum(second_part))
+# }
+# 
+# C <- S_T
+# theta <- function(w) {
+#   return(inv(w * t(X) %*% X + (1 - w) * t(Y) %*% Y) %*% 
+#   (w * t(X) %*% C + (1 - w) * t(Y) %*% D))
+# }
+
+plot_index <- S_0_to_plot %>% as_tibble() %>% filter(value < 0.5)
+
+f_w_05 <- calculate_delta(S_0, sigma, 1, 0.5)
+
+f_w_0 <- calculate_delta(S_0, sigma, 1, 1e-12)
+
+
+remove_from_plot <- -c(seq(dim(plot_index)[1]))
+plot(y = f_w_05$D, 
+        x = S_0_to_plot, col = "grey", type = "p",
+     xlim = c(0.2, 1.7), ylim = c(-0.1, 1.3), 
+     xlab=("Stock price"), ylab=("Call Delta"), title = ("Est"))
+text(4, 9, "True Delta")+ 
+  lines(S_0_to_plot[remove_from_plot],
+       true_derr[remove_from_plot], col = "black")+ 
+  lines(y = f_w_05$delta[remove_from_plot], 
+        x = S_0_to_plot[remove_from_plot], type = 'l', col = "red") +
+  lines(S_0_to_plot[remove_from_plot], 
+  derr_pricing_func_val[remove_from_plot], col = "blue") + 
+  lines(y = f_w_0$delta[remove_from_plot], 
+        x = S_0_to_plot[remove_from_plot], col = "orange")
+text(0.22, 0.8, "Black: True Delta", col = "black", cex = .65, adj = 0)
+text(0.22, 0.7, "Blue: Price only-regression", col = "blue", cex = .65, adj = 0)
+text(0.22, 0.6, "Red: Half/half-regression", col = "red", cex = .65, adj = 0)
+text(0.22, 0.5, "Orange: Delta only-regression", col = "orange", cex = .65, adj = 0)
+text(0.22, 1.2, "Grey o's: Simulated Deltas", col = "grey", cex = .65, adj = 0)
+```
+
+## S.1 - Figure 4
+```{r, warning = FALSE, message = FALSE}
+set.seed(4)
+K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 1000;
+simulations <- c(500, 700, 1000, 2000, 3000, 4000, 5000, 6000)
+true_delta_err <- w_05_delta_err <- matrix(c(rep(0, length(simulations)*10)), ncol = length(simulations))
+pricing_delta_err <- w_05_delta_err
+
+for(j in 1:10){
+  for(i in 1:length(simulations)){
+    at <- 0; bt <- 0;num_rep <- simulations[i]
+    S_0 <- c(rep(1, length(num_rep)))
+    St <- S_0
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, true_delta, list(K = K, sigma = sigma))
+    true_delta_err[j, i] <- err
+   # cat("i: ", i, "true err: ", err)
+    ### ESTIMATED DELTA
+    rand_norm_0 <- rnorm(num_rep)
+    S_0 <- K + d * sigma * sqrt(dt) * rand_norm_0
+    S_0 <- S_0 %>% as_tibble() %>% arrange(value) %>% pull()
+    at <- 0; bt <- 0;
+    St <- S_0
+    for(t in seq(dt, T, dt)){
+      St <- St + sigma * sqrt(dt) * rnorm(num_rep)
+      Vt <- at * St + bt
+      at <- calculate_delta(St, sigma, t, 0.5)$delta
+      #at <- pnorm((St-K)/(sigma * sqrt(t)))
+      bt <- Vt - at * St
+    }
+    
+    err <- sd((Vt - sapply(St, FUN = function(x)max(x - K, 0))))
+    w_05_delta_err[j, i] <- err
+    
+    # rand_norm_0 <- rnorm(num_rep)
+    # S_0 <- K + d * sigma * sqrt(dt) * rand_norm_0
+    # S_0 <- S_0 %>% as_tibble() %>% arrange(value) %>% pull()
+    at <- 0; bt <- 0;
+    St <- S_0
+    for(t in seq(dt, T, dt)){
+      St <- St + sigma * sqrt(dt) * rnorm(num_rep)
+      Vt <- at * St + bt
+      at <- calculate_delta_price(St, sigma, t)
+      bt <- Vt - at * St
+    }
+    
+    err <- sd((Vt - sapply(St, FUN = function(x)max(x - K, 0))))
+    pricing_delta_err[j, i] <- err
+    
+#    cat("i: ", i,  " est err: ", err)
+  }
+}
+# err_own <- sqrt(sum((Vt - sapply(St, FUN = function(x)max(x - K, 0)) - mean(Vt - sapply(St, FUN = function(x)max(x - K, 0))))^2)/num_rep)
+#plot(err)
+```
+
+# Plotting
+```{r}
+true_delta_err <- colMeans(true_delta_err)
+w_05_delta_err <- colMeans(w_05_delta_err)
+pricing_delta_err <- colMeans(pricing_delta_err)
+
+plot(y = true_delta_err, simulations, type = 'l', ylim = c(0.01, 0.08), col = "red") +
+  lines(y = w_05_delta_err, x = simulations, type = 'l', col = "blue")+
+  lines(y = pricing_delta_err, x = simulations, type = 'l', col = "orange")
+```
+
+```{r}
+St <- c(rep(0, 1000)); num_rep <- 1000
+err_vec <- St;Vt <- 0
+for(i in 1:num_rep){
+    at <- 0; bt <- 0;Vt <- 0
+    S_0 <- c(rep(1, length(1)))
+    St <- S_0
+  for(t in seq(dt, T, dt)){
+    St <- St + sigma * sqrt(dt) * rnorm(1)
+    Vt <- at * St + bt
+    at <- pnorm((St-K)/(sigma * sqrt(t)))
+    bt <- Vt - at * St
+  }
+    err_vec[i] <- Vt - max(St - K, 0)
+}
+sd(err_vec)
+
+```
+
