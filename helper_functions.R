@@ -43,7 +43,7 @@ est_derr_pricing_function <- function(coefs, S0){
   return((S0_6 %*% (c(2:7) * coefs[2:7])) + coefs[1])
 }
 
-calculate_delta_price <- function(S0, sigma, Tt){
+calculate_delta_price <- function(S0, sigma, Tt, K = NULL, w = NULL){
   rand_norm_T <- rnorm(length(S0))
   S_T <- S0 + sigma * sqrt(Tt) * rand_norm_T
   
@@ -62,15 +62,15 @@ calculate_delta_price <- function(S0, sigma, Tt){
   return(derr_pricing_func_val)
 }
 
-true_delta <- function(St, K, sigma, t){
-  return(pnorm((St-K)/(sigma * sqrt(t))))
+true_delta <- function(S0, K, sigma, Tt, w){
+  return(pnorm((S0-K)/(sigma * sqrt(Tt))))
 }
 
-calculate_hedge_error <- function(dt, Tt, num_rep, K, sigma, St, delta_func, ...){
+calculate_hedge_error <- function(dt, Tt, num_rep, K, sigma, St, delta_func, w = NULL){
   for(t in seq(dt, Tt, dt)){
     St <- St + sigma * sqrt(dt) * rnorm(num_rep)
     Vt <- at * St + bt
-    at <- delta_func(St = St, t = t, ...)
+    at <- delta_func(S0 = St, Tt = t, K = K, sigma = sigma, w = w)
     bt <- Vt - at * St
   }
   

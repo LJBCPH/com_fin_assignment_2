@@ -83,46 +83,6 @@ plot(S_0_to_plot,
 
 ## S.1 - Figure 3
 ```{r, fig.width = 3, fig.height = 3}
-# D <- S_T %>% 
-#   as_tibble() %>% 
-#   transmute(D_val = ifelse(value >= K, 1, 0)) %>% 
-#   pull()
-# 
-# zeroes <- c(rep(0, length(S_0))) %>% 
-#   as_tibble() %>% 
-#   rename(zeroes = value)
-# ones <- c(rep(1, length(S_0))) %>% 
-#   as_tibble() %>% 
-#   rename(ones = value)
-# X <- ones %>%
-#   bind_cols(poly(S_0, 7, raw=TRUE) %>%
-#   as_tibble()) %>%
-#   as.matrix()
-# 
-# poly_6 <- poly(S_0, 6, raw=TRUE)
-# Y <- zeroes %>% 
-#   bind_cols(ones) %>% 
-#   bind_cols(poly_6) %>% 
-#   as.matrix()
-# 
-# for(i in 1:8){
-#   Y[,i] <- Y[,i] * (i-1)
-# }
-# 
-# crit <- function(w, C, D, coefs){
-#   C_est <- c_xs %*% coefs
-#   D_est <- d_xs %*% coefs[-1]
-#   first_part <- (C - C_est)^2
-#   second_part <- (D - D_est)^2
-#   return(w * sum(first_part) + (1-w) * sum(second_part))
-# }
-# 
-# C <- S_T
-# theta <- function(w) {
-#   return(inv(w * t(X) %*% X + (1 - w) * t(Y) %*% Y) %*% 
-#   (w * t(X) %*% C + (1 - w) * t(Y) %*% D))
-# }
-
 plot_index <- S_0_to_plot %>% as_tibble() %>% filter(value < 0.5)
 
 f_w_05 <- calculate_delta(S_0, sigma, 1, 0.5)
@@ -153,7 +113,7 @@ text(0.22, 1.2, "Grey o's: Simulated Deltas", col = "grey", cex = .65, adj = 0)
 
 ## S.1 - Figure 4
 ```{r, warning = FALSE, message = FALSE}
-set.seed(4)
+#set.seed(3)
 K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 1000;
 simulations <- c(500, 700, 1000, 2000, 3000, 4000, 5000, 6000)
 true_delta_err <- w_05_delta_err <- matrix(c(rep(0, length(simulations)*10)), ncol = length(simulations))
@@ -164,7 +124,7 @@ for(j in 1:10){
     at <- 0; bt <- 0;num_rep <- simulations[i]
     S_0 <- c(rep(1, length(num_rep)))
     St <- S_0
-    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, true_delta, list(K = K, sigma = sigma))
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, true_delta)
     true_delta_err[j, i] <- err
    # cat("i: ", i, "true err: ", err)
     ### ESTIMATED DELTA
@@ -184,9 +144,6 @@ for(j in 1:10){
     err <- sd((Vt - sapply(St, FUN = function(x)max(x - K, 0))))
     w_05_delta_err[j, i] <- err
     
-    # rand_norm_0 <- rnorm(num_rep)
-    # S_0 <- K + d * sigma * sqrt(dt) * rand_norm_0
-    # S_0 <- S_0 %>% as_tibble() %>% arrange(value) %>% pull()
     at <- 0; bt <- 0;
     St <- S_0
     for(t in seq(dt, T, dt)){
@@ -202,8 +159,6 @@ for(j in 1:10){
 #    cat("i: ", i,  " est err: ", err)
   }
 }
-# err_own <- sqrt(sum((Vt - sapply(St, FUN = function(x)max(x - K, 0)) - mean(Vt - sapply(St, FUN = function(x)max(x - K, 0))))^2)/num_rep)
-#plot(err)
 ```
 
 # Plotting
@@ -212,27 +167,9 @@ true_delta_err <- colMeans(true_delta_err)
 w_05_delta_err <- colMeans(w_05_delta_err)
 pricing_delta_err <- colMeans(pricing_delta_err)
 
-plot(y = true_delta_err, simulations, type = 'l', ylim = c(0.01, 0.08), col = "red") +
+plot(y = true_delta_err, simulations, type = 'l', ylim = c(0.01, 0.14), col = "red") +
   lines(y = w_05_delta_err, x = simulations, type = 'l', col = "blue")+
   lines(y = pricing_delta_err, x = simulations, type = 'l', col = "orange")
 ```
 
-```{r}
-St <- c(rep(0, 1000)); num_rep <- 1000
-err_vec <- St;Vt <- 0
-for(i in 1:num_rep){
-    at <- 0; bt <- 0;Vt <- 0
-    S_0 <- c(rep(1, length(1)))
-    St <- S_0
-  for(t in seq(dt, T, dt)){
-    St <- St + sigma * sqrt(dt) * rnorm(1)
-    Vt <- at * St + bt
-    at <- pnorm((St-K)/(sigma * sqrt(t)))
-    bt <- Vt - at * St
-  }
-    err_vec[i] <- Vt - max(St - K, 0)
-}
-sd(err_vec)
-
-```
 
