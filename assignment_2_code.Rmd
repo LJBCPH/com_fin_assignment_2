@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(dplyr)
 library(matlib)
-source("helper_functions.R")
+source(paste0(getwd(), "/helper_functions.R"))
 ```
 
 ## S.1 - Figure 2
@@ -59,14 +59,14 @@ plot(x = S_0, y = call_prices,
           type = 'l')
 
 # estimated derrivatives
-est_derr_pricing_function <- function(coefs, S0){
-  S0_6 <- poly(S0, 6, raw = TRUE)
-  return((S0_6 %*% (c(2:7) * coefs[2:7])) + coefs[1])
-}
+# est_derr_pricing_function <- function(coefs, S0){
+#   S0_6 <- poly(S0, 6, raw = TRUE)
+#   return((S0_6 %*% (c(2:7) * coefs[2:7])) + coefs[1])
+# }
 
-
+# 
 derr_pricing_func_val <- est_derr_pricing_function(est_pricing_func$coefficients[-1],
-                                                   S_0_to_plot)
+                                                    S_0_to_plot)
 
 # actual derrivatives
 true_derr <- pnorm((S_0-K)/(sigma * sqrt(Tt)))
@@ -116,45 +116,81 @@ text(0.22, 1.2, "Grey o's: Simulated Deltas", col = "grey", cex = .65, adj = 0)
 #set.seed(3)
 K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 1000;
 simulations <- c(500, 700, 1000, 2000, 3000, 4000, 5000, 6000)
-true_delta_err <- w_05_delta_err <- matrix(c(rep(0, length(simulations)*10)), ncol = length(simulations))
-pricing_delta_err <- w_05_delta_err
+true_delta_err <- w_05_delta_err_7 <- matrix(c(rep(0, length(simulations)*10)), ncol = length(simulations))
+pricing_delta_err_3 <- w_05_delta_err_3 <- w_05_delta_err_7
+pricing_delta_err_4 <- w_05_delta_err_4 <- w_05_delta_err_7
+pricing_delta_err_5 <- w_05_delta_err_5 <- w_05_delta_err_7
+pricing_delta_err_6 <- w_05_delta_err_6 <- w_05_delta_err_7
+pricing_delta_err_7 <- w_05_delta_err_7 <- w_05_delta_err_7
+pricing_delta_err_8 <- w_05_delta_err_8 <- w_05_delta_err_7
+pricing_delta_err_9 <- w_05_delta_err_9 <- w_05_delta_err_7
 
 for(j in 1:10){
   for(i in 1:length(simulations)){
-    at <- 0; bt <- 0;num_rep <- simulations[i]
+    at <- 0; bt <- 0;num_rep <- 1000; num_sim#simulations[i]
     S_0 <- c(rep(1, length(num_rep)))
     St <- S_0
-    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, true_delta)
+    
+    ### Calculating true delta hedge error
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, true_delta, pol_degree = 7)
     true_delta_err[j, i] <- err
-   # cat("i: ", i, "true err: ", err)
+    
     ### ESTIMATED DELTA
+    rand_norm_0 <- rnorm(num_rep)
+    S_0 <- K + d * sigma * sqrt(dt) * rand_norm_0
+    S_0 <- S_0 %>% as_tibble() %>% arrange(value) %>% pull()
+    at <- 1; bt <- 1;
+    St <- S_0
+    # for(t in seq(dt, T, dt)){
+    #   St <- St + sigma * sqrt(dt) * rnorm(num_rep)
+    #   Vt <- at * St + bt
+    #   at <- calculate_delta(St, sigma, t, 0.5, pol_degree = 7)$delta
+    #   #at <- pnorm((St-K)/(sigma * sqrt(t)))
+    #   bt <- Vt - at * St
+    # }
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, calculate_delta, pol_degree = 3, w = 0.5)
+    w_05_delta_err_3[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, calculate_delta, pol_degree = 4, w = 0.5)
+    w_05_delta_err_4[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, calculate_delta, pol_degree = 5, w = 0.5)
+    w_05_delta_err_5[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, calculate_delta, pol_degree = 6, w = 0.5)
+    w_05_delta_err_6[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, calculate_delta, pol_degree = 7, w = 0.5)
+    w_05_delta_err_7[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, calculate_delta, pol_degree = 8, w = 0.5)
+    w_05_delta_err_8[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, calculate_delta, pol_degree = 9, w = 0.5)
+    w_05_delta_err_9[j, i] <- err
+    
+    ### Calculating estimated hedge error with only price
     rand_norm_0 <- rnorm(num_rep)
     S_0 <- K + d * sigma * sqrt(dt) * rand_norm_0
     S_0 <- S_0 %>% as_tibble() %>% arrange(value) %>% pull()
     at <- 0; bt <- 0;
     St <- S_0
-    for(t in seq(dt, T, dt)){
-      St <- St + sigma * sqrt(dt) * rnorm(num_rep)
-      Vt <- at * St + bt
-      at <- calculate_delta(St, sigma, t, 0.5)$delta
-      #at <- pnorm((St-K)/(sigma * sqrt(t)))
-      bt <- Vt - at * St
-    }
-    
-    err <- sd((Vt - sapply(St, FUN = function(x)max(x - K, 0))))
-    w_05_delta_err[j, i] <- err
-    
-    at <- 0; bt <- 0;
-    St <- S_0
-    for(t in seq(dt, T, dt)){
-      St <- St + sigma * sqrt(dt) * rnorm(num_rep)
-      Vt <- at * St + bt
-      at <- calculate_delta_price(St, sigma, t)
-      bt <- Vt - at * St
-    }
-    
-    err <- sd((Vt - sapply(St, FUN = function(x)max(x - K, 0))))
-    pricing_delta_err[j, i] <- err
+    # for(t in seq(dt, T, dt)){
+    #   St <- St + sigma * sqrt(dt) * rnorm(num_rep)
+    #   Vt <- at * St + bt
+    #   at <- calculate_delta_price(St, sigma, t, pol_degree = 7)$delta
+    #   bt <- Vt - at * St
+    # }
+    # 
+    # err <- sd((Vt - sapply(St, FUN = function(x)max(x - K, 0))))
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, calculate_delta_price, pol_degree = 3)
+    pricing_delta_err_3[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, calculate_delta_price, pol_degree = 4)
+    pricing_delta_err_4[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, calculate_delta_price, pol_degree = 5)
+    pricing_delta_err_5[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, calculate_delta_price, pol_degree = 6)
+    pricing_delta_err_6[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, calculate_delta_price, pol_degree = 7)
+    pricing_delta_err_7[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, calculate_delta_price, pol_degree = 8)
+    pricing_delta_err_8[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, calculate_delta_price, pol_degree = 9)
+    pricing_delta_err_9[j, i] <- err
     
 #    cat("i: ", i,  " est err: ", err)
   }
@@ -164,12 +200,37 @@ for(j in 1:10){
 # Plotting
 ```{r}
 true_delta_err <- colMeans(true_delta_err)
-w_05_delta_err <- colMeans(w_05_delta_err)
-pricing_delta_err <- colMeans(pricing_delta_err)
+w_05_delta_err_3 <- colMeans(w_05_delta_err_3)
+pricing_delta_err_3 <- colMeans(pricing_delta_err_3)
+w_05_delta_err_4 <- colMeans(w_05_delta_err_4)
+pricing_delta_err_4 <- colMeans(pricing_delta_err_4)
+w_05_delta_err_5 <- colMeans(w_05_delta_err_5)
+pricing_delta_err_5 <- colMeans(pricing_delta_err_5)
+w_05_delta_err_6 <- colMeans(w_05_delta_err_6)
+pricing_delta_err_6 <- colMeans(pricing_delta_err_6)
+w_05_delta_err_7 <- colMeans(w_05_delta_err_7)
+pricing_delta_err_7 <- colMeans(pricing_delta_err_7)
+w_05_delta_err_8 <- colMeans(w_05_delta_err_8)
+pricing_delta_err_8 <- colMeans(pricing_delta_err_8)
+w_05_delta_err_9 <- colMeans(w_05_delta_err_9)
+pricing_delta_err_9 <- colMeans(pricing_delta_err_9)
 
-plot(y = true_delta_err, simulations, type = 'l', ylim = c(0.01, 0.14), col = "red") +
-  lines(y = w_05_delta_err, x = simulations, type = 'l', col = "blue")+
-  lines(y = pricing_delta_err, x = simulations, type = 'l', col = "orange")
+plot(y = true_delta_err, simulations, type = 'b', ylim = c(0.01, 0.14), col = "red") +
+  lines(y = pricing_delta_err_3, x = simulations, type = 'b', col = "orange")+
+  lines(y = pricing_delta_err_4, x = simulations, type = 'b', col = "orange")+
+  lines(y = pricing_delta_err_5, x = simulations, type = 'b', col = "orange")+
+  lines(y = pricing_delta_err_6, x = simulations, type = 'b', col = "orange")+
+  lines(y = pricing_delta_err_7, x = simulations, type = 'b', col = "orange")+
+  lines(y = pricing_delta_err_8, x = simulations, type = 'b', col = "orange")+
+  lines(y = pricing_delta_err_9, x = simulations, type = 'b', col = "orange")+
+  lines(y = w_05_delta_err_3, x = simulations, type = 'b', col = "blue")+
+  lines(y = w_05_delta_err_4, x = simulations, type = 'b', col = "blue")+
+  lines(y = w_05_delta_err_5, x = simulations, type = 'b', col = "blue")+
+  lines(y = w_05_delta_err_6, x = simulations, type = 'b', col = "blue")+
+  lines(y = w_05_delta_err_7, x = simulations, type = 'b', col = "blue")+
+  lines(y = w_05_delta_err_8, x = simulations, type = 'b', col = "blue")+
+  lines(y = w_05_delta_err_9, x = simulations, type = 'b', col = "blue")
+
 ```
 
 

@@ -3,7 +3,7 @@ calculate_theta_coefs <- function(w, X, Y, C, D) {
          (w * t(X) %*% C + (1 - w) * t(Y) %*% D))
 }
 
-calculate_delta <- function(S0, sigma, Tt, w){
+calculate_delta <- function(S0, sigma, Tt, w, K = 1, pol_degree = 7){
   
   rand_norm_T <- rnorm(length(S0))
   S_T <- S0 + sigma * sqrt(Tt) * rand_norm_T
@@ -14,17 +14,17 @@ calculate_delta <- function(S0, sigma, Tt, w){
   
   Y <- zeroes %>% 
     cbind(ones) %>% 
-    cbind(poly(S0, 6, raw=TRUE)) %>% 
+    cbind(poly(S0, pol_degree-1, raw=TRUE)) %>% 
     as.matrix()
   
-  for(i in 1:8){
+  for(i in 1:(pol_degree+1)){
     Y[,i] <- Y[,i] * (i-1)
   }
   
   C <- S_T
   
   X <- ones %>%
-    cbind(poly(S0, 7, raw=TRUE)) %>%
+    cbind(poly(S0, pol_degree, raw=TRUE)) %>%
     as.matrix()
   
   D <- S_T %>% 
@@ -38,12 +38,13 @@ calculate_delta <- function(S0, sigma, Tt, w){
               D = D))
 }
 
-est_derr_pricing_function <- function(coefs, S0){
-  S0_6 <- poly(S0, 6, raw = TRUE)
-  return((S0_6 %*% (c(2:7) * coefs[2:7])) + coefs[1])
+est_derr_pricing_function <- function(coefs, S0, pol_degree = 7){
+  S0_6 <- poly(S0, (pol_degree-1), raw = TRUE)
+  return((S0_6 %*% (c(2:pol_degree) * coefs[2:pol_degree])) + coefs[1])
 }
 
-calculate_delta_price <- function(S0, sigma, Tt, K = NULL, w = NULL){
+
+calculate_delta_price <- function(S0, sigma, Tt, K = NULL, w = NULL, pol_degree = 7){
   rand_norm_T <- rnorm(length(S0))
   S_T <- S0 + sigma * sqrt(Tt) * rand_norm_T
   
@@ -53,24 +54,26 @@ calculate_delta_price <- function(S0, sigma, Tt, K = NULL, w = NULL){
   call_simulations <- cbind(S0, call_prices) %>% 
     as_data_frame()
   
-  est_pricing_func <- lm(call_prices ~ poly(S0, 7, raw=TRUE), data = call_simulations)
+  est_pricing_func <- lm(call_prices ~ poly(S0, pol_degree, raw=TRUE), data = call_simulations)
   
   coefs <- est_pricing_func$coefficients %>% as_tibble() %>% mutate(value = ifelse(is.na(value), 0, value)) %>% as.matrix()
-  
-  derr_pricing_func_val <- est_derr_pricing_function(coefs[-1],
-                                                     S0)
-  return(derr_pricing_func_val)
+
+  derr_pricing_func_val <- est_derr_pricing_function(coefs = coefs[-1],
+                                                     S0 = S0, 
+                                                     pol_degree = (pol_degree - 1))
+  return(list(delta = derr_pricing_func_val))
 }
 
-true_delta <- function(S0, K, sigma, Tt, w){
-  return(pnorm((S0-K)/(sigma * sqrt(Tt))))
+true_delta <- function(S0, K, sigma, Tt, w, pol_degree){
+  return(list(delta = pnorm((S0-K)/(sigma * sqrt(Tt)))))
 }
 
-calculate_hedge_error <- function(dt, Tt, num_rep, K, sigma, St, delta_func, w = NULL){
+calculate_hedge_error <- function(dt, Tt, num_rep, K, sigma, St, delta_func, S0, w = NULL, pol_degree = 7){
+  S0 <- S0
   for(t in seq(dt, Tt, dt)){
     St <- St + sigma * sqrt(dt) * rnorm(num_rep)
     Vt <- at * St + bt
-    at <- delta_func(S0 = St, Tt = t, K = K, sigma = sigma, w = w)
+    at <- delta_func(S0 = S0, Tt = (1-t), K = K, sigma = sigma, w = w, pol_degree = 7)$delta
     bt <- Vt - at * St
   }
   
