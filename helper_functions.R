@@ -89,12 +89,13 @@ true_delta <- function(S0, K, sigma, Tt, w, pol_degree, St){
   return(list(delta = pnorm((St-K)/(sigma * sqrt(Tt)))))
 }
 
-calculate_hedge_error <- function(dt, Tt, num_rep, K, sigma, St, S0, delta_func, w = NULL, pol_degree = 7){
+calculate_hedge_error <- function(dt, Tt, num_rep, K, sigma, St, S0, delta_func, w = NULL, pol_degree = 7, seed = 3){
   #S0 <- S0
+  set.seed(seed)
   for(t in seq(dt, Tt, dt)){
     St <- St + sigma * sqrt(dt) * rnorm(num_rep)
     Vt <- at * St + bt
-    at <- delta_func(S0 = S0, Tt = 1-t, K = K, sigma = sigma, w = w, pol_degree = 7, St = St)$delta
+    at <- delta_func(S0 = S0, Tt = 1-t, K = K, sigma = sigma, w = w, pol_degree = pol_degree, St = St)$delta
     bt <- Vt - at * St
   }
   

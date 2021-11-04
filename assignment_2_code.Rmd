@@ -125,8 +125,9 @@ pricing_delta_err_7 <- w_05_delta_err_7 <- w_05_delta_err_7
 pricing_delta_err_8 <- w_05_delta_err_8 <- w_05_delta_err_7
 pricing_delta_err_9 <- w_05_delta_err_9 <- w_05_delta_err_7
 
-for(j in 1:2){
+for(j in 1:10){
   for(i in 1:length(simulations)){
+    set.seed(3)
     at <- 0; bt <- 0; num_sim <- simulations[i]
     St <- c(rep(1, length(num_rep)))
     rand_norm_0 <- rnorm(num_sim)
@@ -151,20 +152,20 @@ for(j in 1:2){
     #   bt <- Vt - at * St
     # }
     # err <- sd((Vt - sapply(St, FUN = function(x)max(x - K, 0))))
-     #err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 3, w = 0.5)
-     #w_05_delta_err_3[j, i] <- err
-    # err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 4, w = 0.5)
-    # w_05_delta_err_4[j, i] <- err
-    # err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 5, w = 0.5)
-    # w_05_delta_err_5[j, i] <- err
-    # err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 6, w = 0.5)
-    # w_05_delta_err_6[j, i] <- err
-    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St = St, S0 = S_0, calculate_delta, pol_degree = 7, w = 0.5)
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 3, w = 0.5)
+    w_05_delta_err_3[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 4, w = 0.5)
+    w_05_delta_err_4[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 5, w = 0.5)
+    w_05_delta_err_5[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 6, w = 0.5)
+    w_05_delta_err_6[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 7, w = 0.5)
     w_05_delta_err_7[j, i] <- err
-    # err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 8, w = 0.5)
-    # w_05_delta_err_8[j, i] <- err
-    # err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 9, w = 0.5)
-    # w_05_delta_err_9[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 8, w = 0.5)
+    w_05_delta_err_8[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 9, w = 0.5)
+    w_05_delta_err_9[j, i] <- err
     
     ### Calculating estimated hedge error with only price
     # rand_norm_0 <- rnorm(num_rep)
@@ -184,20 +185,20 @@ for(j in 1:2){
     # 
     # err <- sd((Vt - sapply(St, FUN = function(x)max(x - K, 0))))
     
-    # err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 3)
-    # pricing_delta_err_3[j, i] <- err
-    # err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 4)
-    # pricing_delta_err_4[j, i] <- err
-    # err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 5)
-    # pricing_delta_err_5[j, i] <- err
-    # err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 6)
-    # pricing_delta_err_6[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 3)
+    pricing_delta_err_3[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 4)
+    pricing_delta_err_4[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 5)
+    pricing_delta_err_5[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 6)
+    pricing_delta_err_6[j, i] <- err
     err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 7)
     pricing_delta_err_7[j, i] <- err
-    # err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 8)
-    # pricing_delta_err_8[j, i] <- err
-    # err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 9)
-    # pricing_delta_err_9[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 8)
+    pricing_delta_err_8[j, i] <- err
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 9)
+    pricing_delta_err_9[j, i] <- err
     
 #    cat("i: ", i,  " est err: ", err)
   }
@@ -222,7 +223,7 @@ pricing_delta_err_8 <- colMeans(pricing_delta_err_8)
 w_05_delta_err_9 <- colMeans(w_05_delta_err_9)
 pricing_delta_err_9 <- colMeans(pricing_delta_err_9)
 
-plot(y = true_delta_err, simulations, type = 'b', ylim = c(0.01, 0.14), col = "red") +
+plot(y = true_delta_err, simulations, type = 'l', lty = 2, ylim = c(0.01, 0.05), col = "red") +
   lines(y = pricing_delta_err_3, x = simulations, type = 'b', col = "orange")+
   lines(y = pricing_delta_err_4, x = simulations, type = 'b', col = "orange")+
   lines(y = pricing_delta_err_5, x = simulations, type = 'b', col = "orange")+
