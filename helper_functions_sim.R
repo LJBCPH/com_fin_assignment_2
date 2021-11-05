@@ -6,6 +6,7 @@ calculate_theta_coefs <- function(w, X, Y, C, D) {
 calculate_delta <- function(S0, sigma, Tt, w, K = 1, pol_degree = 7, St = NULL){
   
   rand_norm_T <- rnorm(length(S0))
+  #S0 <- 1 + sigma * sqrt(Tt) * rand_norm_T
   S_T <- S0 + sigma * sqrt(Tt) * rand_norm_T
   
   zeroes <- c(rep(0, length(S0)))
@@ -62,6 +63,7 @@ est_derr_pricing_function <- function(coefs, S0, pol_degree = 7){
 
 calculate_delta_price <- function(S0, sigma, Tt, K = NULL, w = NULL, pol_degree = 7, St = NULL){
   rand_norm_T <- rnorm(length(S0))
+  #S0 <- 1 + sigma * sqrt(Tt) * rand_norm_T
   S_T <- S0 + sigma * sqrt(Tt) * rand_norm_T
   
   call_prices <- sapply(S_T, FUN = function(x)max(x - K, 0))
@@ -73,6 +75,9 @@ calculate_delta_price <- function(S0, sigma, Tt, K = NULL, w = NULL, pol_degree 
   est_pricing_func <- lm(call_prices ~ poly(S0, pol_degree, raw=TRUE), data = call_simulations)
   
   coefs <- est_pricing_func$coefficients %>% as_tibble() %>% mutate(value = ifelse(is.na(value), 0, value)) %>% as.matrix()
+  # if(Tt < 0.15){
+  # cat("polynm: ", pol_degree, " t: ",  Tt, " coefs: ", coefs, "\n")
+  # }
   if(missing(St)){
     derr_pricing_func_val <- est_derr_pricing_function(coefs = coefs[-1],
                                                        S0 = S0, 
@@ -90,15 +95,18 @@ true_delta <- function(S0, K, sigma, Tt, w, pol_degree, St){
 }
 
 calculate_hedge_error <- function(dt, Tt, num_rep, K, sigma, St, S0, delta_func, w = NULL, pol_degree = 7, seed = 3){
-  #S0 <- S0
   set.seed(seed)
-  for(t in seq(dt, Tt, dt)){
+  at <- 1; bt <- 1;
+  for(t in seq(dt, Tt-dt, dt)){
+    rand_norm_0 <- rnorm(num_sim)
+    S_0 <- K + d * sigma * sqrt(Tt) * rand_norm_0
     St <- St + sigma * sqrt(dt) * rnorm(num_rep)
     Vt <- at * St + bt
     at <- delta_func(S0 = S0, Tt = 1-t, K = K, sigma = sigma, w = w, pol_degree = pol_degree, St = St)$delta
     bt <- Vt - at * St
   }
-  
-  err <- sd((Vt - sapply(St, FUN = function(x)max(x - K, 0))))
+  St <- St + sigma * sqrt(dt) * rnorm(num_rep)
+  Vt <- at * St + bt
+  err <- sd(Vt - sapply(St, FUN = function(x)max(x - K, 0)))
   return(err)
 }
