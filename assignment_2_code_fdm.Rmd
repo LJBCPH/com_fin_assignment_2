@@ -1,0 +1,69 @@
+---
+title: "Assignment 2 Code FDM"
+author: "Lucas Johan Boesen"
+date: Sys.Date()
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Libraries
+```{r}
+library(dplyr)
+library(matlib)
+source(paste0(getwd(), "/helper_functions_fdm.R"))
+```
+
+# FD1
+```{r}
+# Using Crank_Nicolson
+spots <- c(36, 38, 40, 42, 44)
+S <- c(36, 38, 40, 42, 44); col_names <- c("S", "sigma", "1", "2")
+cn_02 <- crank_nicolson_eu(r = 0.06, Tt = 2, x_min = 0, x_max = 100, 
+                        time_steps = 300, x_steps = 1000, sigma = 0.2, K = 40, spots = spots)
+cn_04 <- crank_nicolson_eu(r = 0.06, Tt = 2, x_min = 0, x_max = 100, 
+                        time_steps = 300, x_steps = 1000, sigma = 0.4, K = 40, spots = spots)
+
+cn_02 <-  cbind(S, c(rep(0.2, 5)), cn_02)
+cn_04 <-  cbind(S, c(rep(0.4, 5)), cn_04)
+colnames(cn_02) <- col_names;
+colnames(cn_04) <- col_names;
+cn_all <- rbind(cn_02, cn_04) %>% 
+  as_tibble() %>% 
+  arrange(S) %>% 
+  tidyr::pivot_longer(cols = c(`1`, `2`), 
+                      names_to = "T",
+                      values_to = "Finite Difference - Crank Nicolson (European)") 
+  
+
+# xtable::xtable(cn_all, digits = 3) ## LATEX TABLE
+```
+
+```{r}
+print(round(cn_02, 3))
+print(round(cn_04, 3))
+```
+```{r}
+spots <- c(36, 38, 40, 42, 44)
+S <- c(36, 38, 40, 42, 44); col_names <- c("S", "sigma", "1", "2")
+cn_02 <- crank_nicolson_us(r = 0.06, Tt = 2, x_min = 0, x_max = 100, 
+                        time_steps = 300, x_steps = 1000, sigma = 0.2, K = 40, spots = spots)
+cn_04 <- crank_nicolson_us(r = 0.06, Tt = 2, x_min = 0, x_max = 100, 
+                        time_steps = 300, x_steps = 1000, sigma = 0.4, K = 40, spots = spots)
+
+cn_02 <-  cbind(S, c(rep(0.2, 5)), cn_02)
+cn_04 <-  cbind(S, c(rep(0.4, 5)), cn_04)
+colnames(cn_02) <- col_names;
+colnames(cn_04) <- col_names;
+cn_all <- rbind(cn_02, cn_04) %>% 
+  as_tibble() %>% 
+  arrange(S) %>% 
+  tidyr::pivot_longer(cols = c(`1`, `2`), 
+                      names_to = "T",
+                      values_to = "Finite Difference - Crank Nicolson (European)") 
+  
+
+```
+
