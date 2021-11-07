@@ -56,7 +56,7 @@ tri_diag_solver <- function(a, b, c, d, payoff = NULL) {
     f[dim] <- max(d[dim] / b[dim], payoff[dim])
   }
   for(i in (dim-1):1){
-    f[i] <- max((d[i] - c[i] * f[i+1]) / b[i], payoff) #Backward substitution
+    f[i] <- max((d[i] - c[i] * f[i+1]) / b[i], payoff[i]) #Backward substitution
   }
   return(f)
 }
@@ -72,12 +72,12 @@ crank_nicolson_eu <- function(r, Tt, x_min, x_max, time_steps, x_steps, sigma, K
   
   mu <- r * grid_x
   sigma_2 <- sigma^2 * grid_x^2
-  
+
   a_lhs <- 1/4 * dt * (sigma_2 / (dx^2) - mu / dx)
   b_lhs <- -1 - 1/2 * dt * (sigma_2 / (dx^2) + r)
   c_lhs <- 1/4 * dt * (sigma_2 / (dx^2) + mu / dx)
   b_star <- -1 + 1/2 * dt * (sigma_2 / (dx^2) + r)
-  
+
   # Defining matrix form like eq. 15, using the right hand side from eq. 19
   rhs_m <- diag(b_star[-c(1, (x_steps + 1))]) # diagonal
   rhs_m[row(rhs_m) - col(rhs_m) == 1] <- -a_lhs[3:(x_steps)] # lower diagona l
@@ -97,18 +97,24 @@ crank_nicolson_eu <- function(r, Tt, x_min, x_max, time_steps, x_steps, sigma, K
     rhs_step[1] <- b_lhs[1] * f[1, i] + c_lhs[1] * f[2, i]
     rhs_step[x_steps - 1] <- a_lhs[x_steps + 1] * f[x_steps, i] + b_lhs[x_steps + 1] * f[x_steps + 1, i]
     rhs <- rhs_m %*% f[-c(1, x_steps + 1), i + 1] + rhs_step
+    
     f[-c(1, x_steps + 1), i] <- tri_diag_solver(a_lhs_mod, b_lhs_mod, c_lhs_mod, rhs)
   }
   
-  #res <- f[c((36+1/10)/dx, (38+1/10)/dx, (40+1/10)/dx, (42+1/10)/dx, (44+1/10)/dx), c(c(1/dt+1, 1))]
-  res <- f[c((spots+1/10)/dx), c(c(1/dt+1, 1))]
+  approx_spots <- grid_time %>% rbind(grid_x %>% as_tibble() %>% bind_cols(f %>% as_tibble()))
+  approx_spots <- sapply(spots, FUN = function(x) approx_spots[which(abs(x - approx_spots$value) == min(abs(x - approx_spots$value))),1])
+  approx_spots <- approx_spots %>% unlist() %>% as.data.frame() %>% pull()
+  
+  approx_times <- sapply(selected_times, FUN = function(x) grid_time[which(abs(x - grid_time) == min(abs(x - grid_time)))])
+
+  res <- f[which(rownames(f) %in% approx_spots), colnames(f) %in% approx_times]
   return(res)
   
 }
 
 ########### CRANK NICOLSON US ######################
 ###################### CRANK NICOLSON EU####################
-crank_nicolson_us <- function(r, Tt, x_min, x_max, time_steps, x_steps, sigma, K = 40, spots = c(36, 38, 40, 42, 44)){
+crank_nicolson_us <- function(r, Tt, x_min, x_max, time_steps, x_steps, sigma, K = 40, spots = c(36, 38, 40, 42, 44), selected_times = c(1, 0)){
   dt <- Tt / time_steps
   dx <- (x_max - x_min) / x_steps
   grid_time <- seq(0, dt * time_steps, dt)
@@ -140,15 +146,22 @@ crank_nicolson_us <- function(r, Tt, x_min, x_max, time_steps, x_steps, sigma, K
   
   payoff <- pmax(K - grid_x[-c(1, (x_steps + 1))], 0)
   for(i in time_steps:1){
-    f[1, i] <- max(exp(-r*(Tt - i * dt)) * f[1, i + 1], K-x_min)
+    f[1, i] <- max(exp(-r*(Tt - i * dt)) * f[1, i + 1], K - x_min)
     rhs_step[1] <- b_lhs[1] * f[1, i] + c_lhs[1] * f[2, i]
     rhs_step[x_steps - 1] <- a_lhs[x_steps + 1] * f[x_steps, i] + b_lhs[x_steps + 1] * f[x_steps + 1, i]
     rhs <- rhs_m %*% f[-c(1, x_steps + 1), i + 1] + rhs_step
     
     f[-c(1, x_steps + 1), i] <- tri_diag_solver(a_lhs_mod, b_lhs_mod, c_lhs_mod, rhs, payoff)
   }
+  rownames(f) <- grid_x; colnames(f) <- grid_time
   
-  res <- f[c((spots+1/10)/dx), c(c(1/dt+1, 1))]
+  approx_spots <- grid_time %>% rbind(grid_x %>% as_tibble() %>% bind_cols(f %>% as_tibble()))
+  approx_spots <- sapply(spots, FUN = function(x) approx_spots[which(abs(x - approx_spots$value) == min(abs(x - approx_spots$value))),1])
+  approx_spots <- approx_spots %>% unlist() %>% as.data.frame() %>% pull()
+  
+  approx_times <- sapply(selected_times, FUN = function(x) grid_time[which(abs(x - grid_time) == min(abs(x - grid_time)))])
+  
+  res <- f[which(rownames(f) %in% approx_spots), colnames(f) %in% approx_times]
   return(res)
   
 }

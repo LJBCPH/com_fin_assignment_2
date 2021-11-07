@@ -16,15 +16,30 @@ library(matlib)
 source(paste0(getwd(), "/helper_functions_fdm.R"))
 ```
 
-# FD1
+# FD1 
+
+## TESTING FOR steps
+## European
 ```{r}
-# Using Crank_Nicolson
+true_sol_eu <- c(3.844, 3.763, 6.711, 7.700, 
+                 2.852, 2.991, 5.834, 6.979,
+                 2.066, 2.356, 5.060, 6.326,
+                 1.465, 1.841, 4.379, 5.736,
+                 1.017, 1.429, 3.783, 5.202)
+
+time_steps <- c(200, 300, 400, 500, 600, 700, 800)
+x_steps <- c(600, 800, 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400)
+grid_test <- expand.grid(time_steps, x_steps)
+diff <- rep(0, (grid_test[,1] %>% length()))
+
+for(k in 1:(grid_test[,1] %>% length())){
 spots <- c(36, 38, 40, 42, 44)
 S <- c(36, 38, 40, 42, 44); col_names <- c("S", "sigma", "1", "2")
+
 cn_02 <- crank_nicolson_eu(r = 0.06, Tt = 2, x_min = 0, x_max = 100, 
-                        time_steps = 300, x_steps = 1000, sigma = 0.2, K = 40, spots = spots)
+                        time_steps = grid_test[k, 1], x_steps = grid_test[k, 2], sigma = 0.2, K = 40, spots = spots)
 cn_04 <- crank_nicolson_eu(r = 0.06, Tt = 2, x_min = 0, x_max = 100, 
-                        time_steps = 300, x_steps = 1000, sigma = 0.4, K = 40, spots = spots)
+                        time_steps = grid_test[k, 1], x_steps = grid_test[k, 2], sigma = 0.4, K = 40, spots = spots)
 
 cn_02 <-  cbind(S, c(rep(0.2, 5)), cn_02)
 cn_04 <-  cbind(S, c(rep(0.4, 5)), cn_04)
@@ -36,18 +51,86 @@ cn_all <- rbind(cn_02, cn_04) %>%
   tidyr::pivot_longer(cols = c(`1`, `2`), 
                       names_to = "T",
                       values_to = "Finite Difference - Crank Nicolson (European)") 
-  
 
-# xtable::xtable(cn_all, digits = 3) ## LATEX TABLE
+diff[k] <- abs(cn_all$`Finite Difference - Crank Nicolson (European)` - true_sol_eu) %>% sum()
+}
+diff <- diff %>% as_tibble() %>% bind_cols(1:(grid_test[,1] %>% length())) %>% arrange(value)
+
+timestep_eu <- grid_test[diff[1,2] %>% pull(), 1]
+xsteps_eu <- grid_test[diff[1, 2] %>% pull(), 2]
+cat("Best value: ", "time steps: ", grid_test[diff[1,2] %>% pull(), 1] , " x steps: ", grid_test[diff[1, 2] %>% pull(), 2])
 ```
 
+## American
 ```{r}
-print(round(cn_02, 3))
-print(round(cn_04, 3))
-```
-```{r}
+# Using Crank_Nicolson
+true_sol_us <- c(4.478, 4.840, 7.101, 8.508,
+                 3.250, 3.745, 6.148, 7.670,
+                 2.314, 2.885, 5.312, 6.920,
+                 1.617, 2.212, 4.582, 6.248,
+                 1.110, 1.690, 3.948, 5.647)
+
+for(k in 1:(grid_test[,1] %>% length())){
 spots <- c(36, 38, 40, 42, 44)
 S <- c(36, 38, 40, 42, 44); col_names <- c("S", "sigma", "1", "2")
+
+cn_02 <- crank_nicolson_us(r = 0.06, Tt = 2, x_min = 0, x_max = 100, 
+                        time_steps = grid_test[k, 1], x_steps = grid_test[k, 2], sigma = 0.2, K = 40, spots = spots)
+cn_04 <- crank_nicolson_us(r = 0.06, Tt = 2, x_min = 0, x_max = 100, 
+                        time_steps = grid_test[k, 1], x_steps = grid_test[k, 2], sigma = 0.4, K = 40, spots = spots)
+
+cn_02 <-  cbind(S, c(rep(0.2, 5)), cn_02)
+cn_04 <-  cbind(S, c(rep(0.4, 5)), cn_04)
+colnames(cn_02) <- col_names;
+colnames(cn_04) <- col_names;
+cn_all <- rbind(cn_02, cn_04) %>% 
+  as_tibble() %>% 
+  arrange(S) %>% 
+  tidyr::pivot_longer(cols = c(`1`, `2`), 
+                      names_to = "T",
+                      values_to = "Finite Difference - Crank Nicolson (American)") 
+
+diff[k] <- abs(cn_all$`Finite Difference - Crank Nicolson (American)` - true_sol_us) %>% sum()
+}
+
+diff <- diff %>% as_tibble() %>% bind_cols(1:(grid_test[,1] %>% length())) %>% arrange(value)
+print(diff)
+timestep_us <- grid_test[diff[1,2] %>% pull(), 1]
+xsteps_us <- grid_test[diff[1, 2] %>% pull(), 2]
+cat("Best value: ", "time steps: ", timestep_us , " x steps: ", xsteps_us)
+```
+
+## European Replication
+```{r}
+# Using Crank_Nicolson
+spots <- c(36, 38, 40, 42, 44)
+S <- c(36, 38, 40, 42, 44); col_names <- c("S", "sigma", "1", "2")
+
+cn_02 <- crank_nicolson_eu(r = 0.06, Tt = 2, x_min = 0, x_max = 100, 
+                        time_steps = timestep_eu, x_steps = xsteps_eu, sigma = 0.2, K = 40, spots = spots)
+cn_04 <- crank_nicolson_eu(r = 0.06, Tt = 2, x_min = 0, x_max = 100, 
+                        time_steps = timestep_eu, x_steps = xsteps_eu, sigma = 0.4, K = 40, spots = spots)
+
+cn_02 <-  cbind(S, c(rep(0.2, 5)), cn_02)
+cn_04 <-  cbind(S, c(rep(0.4, 5)), cn_04)
+colnames(cn_02) <- col_names;
+colnames(cn_04) <- col_names;
+cn_all <- rbind(cn_02, cn_04) %>% 
+  as_tibble() %>% 
+  arrange(S) %>% 
+  tidyr::pivot_longer(cols = c(`1`, `2`), 
+                      names_to = "T",
+                      values_to = "Finite Difference - Crank Nicolson (European)")
+
+cn_all <- cbind(cn_all, abs(cn_all$`Finite Difference - Crank Nicolson (European)` - true_sol_eu))
+
+print(cn_all)
+# xtable::xtable(cn_all, digits = 3) ## LATEX TABLE
+```
+## American replication
+```{r}
+spots <- c(36, 38, 40, 42, 44)
+S <- c(36, 38, 40, 42, 44); col_names <- c("S", "sigma", "2", "1")
 cn_02 <- crank_nicolson_us(r = 0.06, Tt = 2, x_min = 0, x_max = 100, 
                         time_steps = 300, x_steps = 1000, sigma = 0.2, K = 40, spots = spots)
 cn_04 <- crank_nicolson_us(r = 0.06, Tt = 2, x_min = 0, x_max = 100, 
@@ -62,8 +145,46 @@ cn_all <- rbind(cn_02, cn_04) %>%
   arrange(S) %>% 
   tidyr::pivot_longer(cols = c(`1`, `2`), 
                       names_to = "T",
-                      values_to = "Finite Difference - Crank Nicolson (European)") 
-  
+                      values_to = "Finite Difference - Crank Nicolson (American)") 
 
+cn_all <- cbind(cn_all, abs(cn_all$`Finite Difference - Crank Nicolson (American)` - true_sol_us))
+
+print(cn_all)
+# xtable::xtable(cn_all, digits = 3) ## LATEX TABLE
+```
+
+# FD3
+## Convergence of dx
+```{r}
+time_steps_us <- 300; x_steps_us <- 1000;
+spots <- c(0, 10, 20, 35, 39, 40, 41, 45, 50, 60, 70, 80, 90, 100)
+time_selections <- c(0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2)
+
+v1 <- crank_nicolson_us(r = 0.06, Tt = 2, x_min = 0, x_max = 100,
+                        time_steps = time_steps_us * 4, x_steps = x_steps_us * 4,
+                        sigma = 0.2, K = 40, spots = spots, selected_times = time_selections)
+
+v2 <- crank_nicolson_us(r = 0.06, Tt = 2, x_min = 0, x_max = 100,
+                        time_steps = time_steps_us* 4, x_steps = x_steps_us * 2,
+                        sigma = 0.2, K = 40, spots = spots, selected_times = time_selections)
+
+v3 <- crank_nicolson_us(r = 0.06, Tt = 2, x_min = 0, x_max = 100,
+                        time_steps = time_steps_us * 4, x_steps = x_steps_us,
+                        sigma = 0.2, K = 40, spots = spots, selected_times = time_selections)
+
+v4 <- crank_nicolson_us(r = 0.06, Tt = 2, x_min = 0, x_max = 100,
+                        time_steps = time_steps_us * 2, x_steps = x_steps_us * 4,
+                        sigma = 0.2, K = 40, spots = spots, selected_times = time_selections)
+
+v5 <- crank_nicolson_us(r = 0.06, Tt = 2, x_min = 0, x_max = 100,
+                        time_steps = time_steps_us, x_steps = x_steps_us * 4,
+                        sigma = 0.2, K = 40, spots = spots, selected_times = time_selections)
+
+
+x_err <- (v2 - v3) / (v1 - v2)
+print(x_err)
+
+t_err <- (v4 - v5) / (v1 - v4)
+print(t_err)
 ```
 

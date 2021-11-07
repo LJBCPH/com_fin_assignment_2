@@ -115,7 +115,7 @@ text(0.22, 1.2, "Grey o's: Simulated Deltas", col = "grey", cex = .65, adj = 0)
 
 ## S.1 - Figure 4
 ```{r, warning = FALSE, message = FALSE}
-seed <- 3
+seed <- 42
 K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 10000; w <- 0.5;batch_size <- 10
 simulations <- c(400, 700, 1000, 2000, 3000, 4000, 5000, 6000)
 true_delta_err <- w_05_delta_err_7 <- matrix(c(rep(0, length(simulations)*batch_size)), ncol = length(simulations))
@@ -126,7 +126,7 @@ pricing_delta_err_6 <- w_05_delta_err_6 <- w_05_delta_err_7
 pricing_delta_err_7 <- w_05_delta_err_7 <- w_05_delta_err_7
 pricing_delta_err_8 <- w_05_delta_err_8 <- w_05_delta_err_7
 pricing_delta_err_9 <- w_05_delta_err_9 <- w_05_delta_err_7
-
+InitialPrice <- 0.07978846
 for(j in 1:batch_size){
   for(i in 1:length(simulations)){
     set.seed(seed)
@@ -134,93 +134,41 @@ for(j in 1:batch_size){
     St <- c(rep(1, num_rep))
     rand_norm_0 <- rnorm(num_sim)
     S_0 <- K + d * sigma * sqrt(Tt) * rand_norm_0
-    #S_0 <- S_0 %>% as_tibble() %>% arrange(value) %>% pull() ##### GIVER IKKE MENING MED DE HER S0
-    #at <- true_delta(S0 = S_0, Tt = 1, K = K, sigma = sigma, w = w, pol_degree = 7, St = St)$delta
-    
+
     ### Calculating true delta hedge error
-    #V0 <- true_pricing_function(1, 1, 1, 0.2)
     err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, true_delta, pol_degree = 7, seed = seed)
-    true_delta_err[j, i] <- err
-    
-    ### ESTIMATED DELTA
-    # rand_norm_0 <- rnorm(num_rep)
-    # S_0 <- K + d * sigma * sqrt(dt) * rand_norm_0
-    # S_0 <- S_0 %>% as_tibble() %>% arrange(value) %>% pull()
-    # at <- 1; bt <- 1;
-    # St <- S_0
-    # for(t in seq(dt, Tt, dt)){
-    #   St <- St + sigma * sqrt(dt) * rnorm(num_rep)
-    #   Vt <- at * St + bt
-    #   at <- calculate_delta(St, sigma, 1-t, 0.5, pol_degree = 7)$delta
-    #   #at <- pnorm((St-K)/(sigma * sqrt(t)))
-    #   bt <- Vt - at * St
-    # }
-    # err <- sd((Vt - sapply(St, FUN = function(x)max(x - K, 0))))
-  
-#    at <- calculate_delta(S0 = S_0, Tt = 1, K = K, sigma = sigma, w = w, pol_degree = 3, St = St)$delta
+    true_delta_err[j, i] <- err / InitialPrice
+
     err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 3, w = 0.5, seed = seed)
-    w_05_delta_err_3[j, i] <- err
-#        at <- calculate_delta(S0 = S_0, Tt = 1, K = K, sigma = sigma, w = w, pol_degree = 4, St = St)$delta
+    w_05_delta_err_3[j, i] <- err / InitialPrice
     err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 4, w = 0.5, seed = seed)
-    w_05_delta_err_4[j, i] <- err
-#        at <- calculate_delta(S0 = S_0, Tt = 1, K = K, sigma = sigma, w = w, pol_degree = 5, St = St)$delta
+    w_05_delta_err_4[j, i] <- err / InitialPrice
     err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 5, w = 0.5, seed = seed)
-    w_05_delta_err_5[j, i] <- err
-#        at <- calculate_delta(S0 = S_0, Tt = 1, K = K, sigma = sigma, w = w, pol_degree = 6, St = St)$delta
+    w_05_delta_err_5[j, i] <- err / InitialPrice
     err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 6, w = 0.5, seed = seed)
-    w_05_delta_err_6[j, i] <- err
-#        at <- calculate_delta(S0 = S_0, Tt = 1, K = K, sigma = sigma, w = w, pol_degree = 8, St = St)$delta
+    w_05_delta_err_6[j, i] <- err / InitialPrice
     err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 7, w = 0.5, seed = seed)
-    w_05_delta_err_7[j, i] <- err
-#        at <- calculate_delta(S0 = S_0, Tt = 1, K = K, sigma = sigma, w = w, pol_degree = 8, St = St)$delta
+    w_05_delta_err_7[j, i] <- err / InitialPrice
     err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 8, w = 0.5, seed = seed)
-    w_05_delta_err_8[j, i] <- err
-#        at <- calculate_delta(S0 = S_0, Tt = 1, K = K, sigma = sigma, w = w, pol_degree = 9, St = St)$delta
+    w_05_delta_err_8[j, i] <- err / InitialPrice
     err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta, pol_degree = 9, w = 0.5, seed = seed)
-    w_05_delta_err_9[j, i] <- err
-    
-    ### Calculating estimated hedge error with only price
-    # rand_norm_0 <- rnorm(num_rep)
-    # S_0 <- K + d * sigma * sqrt(dt) * rand_norm_0
-    # S_0 <- S_0 %>% as_tibble() %>% arrange(value) %>% pull()
-    #S_t_temp <- S0 + sigma * sqrt(Tt) * rand_norm_T
-    #at <- calculate_delta_price(S0 = S0, Tt = 0, K = K, sigma = sigma, w = w, pol_degree = 7, St = S_t_temp)$delta; 
-    #V_0 <- at * S_t_temp + 0
-    #bt <- V_0 - at * S_t_temp;
-    #St <- S_0
-    # for(t in seq(dt, Tt, dt)){
-    #   St <- St + sigma * sqrt(dt) * rnorm(num_rep)
-    #   Vt <- at * St + bt
-    #   at <- calculate_delta_price(St, sigma, t, pol_degree = 7)$delta
-    #   bt <- Vt - at * St
-    # }
-    # 
-    # err <- sd((Vt - sapply(St, FUN = function(x)max(x - K, 0))))
-    
-#    at <- calculate_delta_price(S0 = S_0, Tt = 1, K = K, sigma = sigma, w = w, pol_degree = 3, St = St)$delta
+    w_05_delta_err_9[j, i] <- err / InitialPrice
     
     err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 3, seed = seed)
-    pricing_delta_err_3[j, i] <- err
-#        at <- calculate_delta_price(S0 = S_0, Tt = 1, K = K, sigma = sigma, w = w, pol_degree = 4, St = St)$delta
+    pricing_delta_err_3[j, i] <- err / InitialPrice
     err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 4, seed = seed)
-    pricing_delta_err_4[j, i] <- err
-#        at <- calculate_delta_price(S0 = S_0, Tt = 1, K = K, sigma = sigma, w = w, pol_degree = 5, St = St)$delta
+    pricing_delta_err_4[j, i] <- err / InitialPrice
     err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 5, seed = seed)
-    pricing_delta_err_5[j, i] <- err
-#        at <- calculate_delta_price(S0 = S_0, Tt = 1, K = K, sigma = sigma, w = w, pol_degree = 6, St = St)$delta
+    pricing_delta_err_5[j, i] <- err / InitialPrice
     err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 6, seed = seed)
-    pricing_delta_err_6[j, i] <- err
-#        at <- calculate_delta_price(S0 = S_0, Tt = 1, K = K, sigma = sigma, w = w, pol_degree = 7, St = St)$delta
+    pricing_delta_err_6[j, i] <- err / InitialPrice
     err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 7, seed = seed)
-    pricing_delta_err_7[j, i] <- err
-#        at <- calculate_delta_price(S0 = S_0, Tt = 1, K = K, sigma = sigma, w = w, pol_degree = 8, St = St)$delta
+    pricing_delta_err_7[j, i] <- err / InitialPrice
     err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 8, seed = seed)
-    pricing_delta_err_8[j, i] <- err
-#        at <- calculate_delta_price(S0 = S_0, Tt = 1, K = K, sigma = sigma, w = w, pol_degree = 9, St = St)$delta
+    pricing_delta_err_8[j, i] <- err / InitialPrice
     err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, calculate_delta_price, pol_degree = 9, seed = seed)
-    pricing_delta_err_9[j, i] <- err
+    pricing_delta_err_9[j, i] <- err / InitialPrice
     
-#    cat("i: ", i,  " est err: ", err)
   }
 }
 ```
@@ -243,7 +191,7 @@ pricing_delta_err_8 <- colMeans(pricing_delta_err_8)
 w_05_delta_err_9 <- colMeans(w_05_delta_err_9)
 pricing_delta_err_9 <- colMeans(pricing_delta_err_9)
 
-plot(y = true_delta_err, simulations, type = 'l', lty = 2, ylim = c(0.015, 0.065), col = "red") +
+plot(y = true_delta_err, simulations, type = 'l', lty = 2, ylim = c(0.09, 0.4), col = "red") +
   lines(y = pricing_delta_err_3, x = simulations, type = 'b', col = "orange")+
   lines(y = pricing_delta_err_4, x = simulations, type = 'b', col = "orange")+
   lines(y = pricing_delta_err_5, x = simulations, type = 'b', col = "orange")+

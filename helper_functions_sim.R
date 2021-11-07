@@ -94,19 +94,43 @@ true_delta <- function(S0, K, sigma, Tt, w, pol_degree, St){
   return(list(delta = pnorm((St-K)/(sigma * sqrt(Tt)))))
 }
 
+ZeroRateBachelierCall<-function(S,T,K,vol){
+  d<-(S-K)/(vol*sqrt(T))
+  CallDelta<-pnorm(d,0,1)
+  CallPrice<-(S-K)*CallDelta+vol*sqrt(T)*dnorm(d,0,1)
+  return(list(Price=CallPrice, Delta=CallDelta))
+}
+
 calculate_hedge_error <- function(dt, Tt, num_rep, K, sigma, St, S0, delta_func, w = NULL, pol_degree = 7, seed = 3){
   set.seed(seed)
-  at <- 1; bt <- 1;
+  initial_price <- ZeroRateBachelierCall(St, Tt, K, sigma)$Price
+  Vt <- initial_price
+  at <- true_delta(S0 = S0, Tt = Tt, K = K, sigma = sigma, w = w, pol_degree = pol_degree, St = St)$delta
+  bt <- Vt-at*St
+  
   for(t in seq(dt, Tt-dt, dt)){
     rand_norm_0 <- rnorm(num_sim)
     S_0 <- K + d * sigma * sqrt(Tt) * rand_norm_0
     St <- St + sigma * sqrt(dt) * rnorm(num_rep)
     Vt <- at * St + bt
-    at <- delta_func(S0 = S0, Tt = 1-t, K = K, sigma = sigma, w = w, pol_degree = pol_degree, St = St)$delta
+    at <- delta_func(S0 = S0, Tt = Tt-t, K = K, sigma = sigma, w = w, pol_degree = pol_degree, St = St)$delta
     bt <- Vt - at * St
   }
   St <- St + sigma * sqrt(dt) * rnorm(num_rep)
   Vt <- at * St + bt
   err <- sd(Vt - sapply(St, FUN = function(x)max(x - K, 0)))
   return(err)
+}
+
+for (i in 2:(Nhedge-1)) {
+  S<-S+vol*sqrt(dt)*rnorm(Npaths)
+  tau<-T-dt*(i-1)
+  dummy<-ZeroRateBachelierCall(S,tau,K,vol)
+  if (Poly){
+    for (k in 1:Npaths)dummy$Delta[k]<-CoefMatrix[2:M,i]%*%(Powers[2:M]*S[k]^(Powers[2:M]-1))
+    
+  }
+  Vpf<-a*S+b
+  a<-dummy$Delta
+  b<-Vpf-a*S
 }
