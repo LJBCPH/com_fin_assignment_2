@@ -305,7 +305,7 @@ text(0.22, 1.2, "Grey o's: Simulated Deltas", col = "grey", cex = .65, adj = 0)
 ## S.2 - Figure 4
 ```{r, warning = FALSE, message = FALSE}
 seed <- 42
-K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 10000; w <- 0.5;batch_size <- 10
+K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 10000; w <- 0.5;batch_size <- 1
 simulations <- c(400, 600, 1000, 2000, 3000, 4000, 5000, 6000)
 true_delta_err <- w_05_delta_err_7 <- matrix(c(rep(0, length(simulations)*batch_size)), ncol = length(simulations))
 pricing_delta_err_3 <- w_05_delta_err_3 <- w_05_delta_err_7
@@ -387,7 +387,7 @@ for(j in 1:batch_size){
 }
 ```
 
-## S.1 - Figure 4 plot
+## S.2 - Figure 4 plot
 ```{r}
 true_delta_err_mean <- colMeans(true_delta_err)
 w_05_delta_err_3_mean <- colMeans(w_05_delta_err_3)
@@ -420,5 +420,67 @@ plot(y = true_delta_err_mean, simulations, type = 'l', lty = 2, ylim = c(0.09, 1
   lines(y = w_05_delta_err_7_mean, x = simulations, type = 'b', col = "blue")+
   lines(y = w_05_delta_err_8_mean, x = simulations, type = 'b', col = "blue")+
   lines(y = w_05_delta_err_9_mean, x = simulations, type = 'b', col = "blue")
+
+```
+
+# S.3 - Figure 4
+## S.3 - Figure 4
+```{r, warning = FALSE, message = FALSE}
+seed <- 42
+K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 10000; w <- 0.5;batch_size <- 10
+simulations <- c(400, 600, 1000, 2000, 3000, 4000, 5000, 6000)
+lrm_3 <- lrm_8 <- std_3 <- std_8 <- matrix(c(rep(0, length(simulations)*batch_size)), ncol = length(simulations))
+initial_price <- BS_func(1, K, sigma, Tt)$Price
+for(j in 1:batch_size){
+  for(i in 1:length(simulations)){
+    set.seed(j)
+    seed <- j
+    num_sim <- simulations[i]
+    St <- c(rep(1, num_rep))
+    rand_norm_0 <- rnorm(num_sim)
+    S_0 <- K * exp(-1/2 * sigma^2 * Tt + sigma * sqrt(Tt) * rand_norm_0)
+    S_0 <- S_0 %>% as_tibble() %>% arrange(value) %>% pull()
+
+    ### Calculating using w = 0.5 
+    coefs <- NULL
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, 
+                                 calculate_delta, pol_degree = 3, w = 0.5, seed = seed, coefs = coefs, 
+                                 BS = TRUE, call_func = BS_func, LRM = TRUE)
+    lrm_3[j, i] <- err / initial_price
+    
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, 
+                                 calculate_delta, pol_degree = 8, w = 0.5, seed = seed, coefs = coefs, 
+                                 BS = TRUE, call_func = BS_func, LRM = TRUE)
+    lrm_8[j, i] <- err / initial_price
+    
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, 
+                             calculate_delta, pol_degree = 3, w = 0.5, seed = seed, coefs = coefs, 
+                             BS = TRUE, call_func = BS_func, LRM = FALSE)
+    std_3[j, i] <- err / initial_price
+    
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, 
+                                 calculate_delta, pol_degree = 8, w = 0.5, seed = seed, coefs = coefs, 
+                                 BS = TRUE, call_func = BS_func, LRM = FALSE)
+    std_8[j, i] <- err / initial_price
+    
+  }
+}
+```
+
+## S.2 - Figure 4 plot
+```{r}
+lrm_3_mean <- colMeans(lrm_3)
+lrm_8_mean <- colMeans(lrm_8)
+std_3_mean <- colMeans(std_3)
+std_8_mean <- colMeans(std_8)
+
+plot(y = lrm_3_mean, simulations, type = 'b', ylim = c(0.09, 2), xlim = c(0, 6500), col = "orange") +
+  lines(y = lrm_8_mean, x = simulations, type = 'b', col = "orange")+
+  lines(y = std_3_mean, x = simulations, type = 'b', col = "blue")+
+  lines(y = std_8_mean, x = simulations, type = 'b', col = "blue") 
+text(6100, lrm_3_mean[8], paste0("LRM 3"), col = "orange", cex = .65, adj = 0)
+text(6100, lrm_8_mean[8], paste0("LRM 8"), col = "orange", cex = .65, adj = 0)
+text(6100, std_3_mean[8], paste0("BS 3"), col = "blue", cex = .65, adj = 0)
+text(6100, std_8_mean[8], paste0("BS 8"), col = "blue", cex = .65, adj = 0)
 
 ```
