@@ -232,20 +232,20 @@ plot(y = true_delta_err, simulations, type = 'l', lty = 0, ylim = c(0.09, 0.4), 
   lines(y = w_05_delta_err_9, x = simulations, type = 'b', col = "blue")
 abline(h = true_delta_err_mean[1], col = "red", lty = 2)
 text(0, true_delta_err[1]+0.02, paste0("Heding with true Delta"), col = "red", adj = 0)
-text(6100, pricing_delta_err_3[8], paste0("3"), col = "orange", adj = 0)
-text(6100, pricing_delta_err_4[8], paste0("4"), col = "orange", adj = 0)
-text(6100, pricing_delta_err_5[8], paste0("5"), col = "orange", adj = 0)
-text(6100, pricing_delta_err_6[8], paste0("6"), col = "orange", adj = 0)
-text(6100, pricing_delta_err_7[8], paste0("7"), col = "orange", adj = 0)
-text(6100, pricing_delta_err_8[8], paste0("8"), col = "orange", adj = 0)
-text(6100, pricing_delta_err_9[8], paste0("9"), col = "orange", adj = 0)
+# text(6100, pricing_delta_err_3[8], paste0("3"), col = "orange", adj = 0)
+# text(6100, pricing_delta_err_4[8], paste0("4"), col = "orange", adj = 0)
+# text(6100, pricing_delta_err_5[8], paste0("5"), col = "orange", adj = 0)
+# text(6100, pricing_delta_err_6[8], paste0("6"), col = "orange", adj = 0)
+# text(6100, pricing_delta_err_7[8], paste0("7"), col = "orange", adj = 0)
+# text(6100, pricing_delta_err_8[8], paste0("8"), col = "orange", adj = 0)
+# text(6100, pricing_delta_err_9[8], paste0("9"), col = "orange", adj = 0)
 text(6100, w_05_delta_err_3[8], paste0("3"), col = "blue", adj = 0)
 text(6100, w_05_delta_err_4[8], paste0("4"), col = "blue", adj = 0)
-text(6100, w_05_delta_err_5[8], paste0("5"), col = "blue", adj = 0)
+text(6150, w_05_delta_err_5[8], paste0("5"), col = "blue", adj = 0)
 text(6100, w_05_delta_err_6[8], paste0("6"), col = "blue", adj = 0)
-text(6100, w_05_delta_err_7[8], paste0("7"), col = "blue", adj = 0)
+text(6150, w_05_delta_err_7[8], paste0("7"), col = "blue", adj = 0)
 text(6100, w_05_delta_err_8[8], paste0("8"), col = "blue", adj = 0)
-text(6100, w_05_delta_err_9[8], paste0("9"), col = "blue", adj = 0)
+text(6150, w_05_delta_err_9[8], paste0("9"), col = "blue", adj = 0)
 text(0, 0, "K = 1, T = 1, vol = 0.2, dt = 1/52, #repetitions = 1000", adj = 0)
 if(params$save_plots == TRUE){
   dev.off()
@@ -472,27 +472,27 @@ plot(y = true_delta_err_mean, simulations, type = 'l', lty = 0, ylim = c(0.09, 1
   lines(y = w_05_delta_err_9_mean, x = simulations, type = 'b', col = "blue")
 abline(h = true_delta_err_mean[1], col = "red", lty = 2)
 text(0, true_delta_err_mean[1]+0.02, paste0("Heding with true Delta"), col = "red", adj = 0)
-text(6100, pricing_delta_err_3_mean[8], paste0("3"), col = "orange", adj = 0)
-text(6100, pricing_delta_err_4_mean[8], paste0("4"), col = "orange", adj = 0)
-text(6100, pricing_delta_err_5_mean[8], paste0("5"), col = "orange", adj = 0)
-text(6100, pricing_delta_err_6_mean[8], paste0("6"), col = "orange", adj = 0)
-text(6100, pricing_delta_err_7_mean[8], paste0("7"), col = "orange", adj = 0)
-text(6100, pricing_delta_err_8_mean[8], paste0("8"), col = "orange", adj = 0)
-text(6100, pricing_delta_err_9_mean[8], paste0("9"), col = "orange", adj = 0)
+# text(6100, pricing_delta_err_3_mean[8], paste0("3"), col = "orange", adj = 0)
+# text(6100, pricing_delta_err_4_mean[8], paste0("4"), col = "orange", adj = 0)
+# text(6100, pricing_delta_err_5_mean[8], paste0("5"), col = "orange", adj = 0)
+# text(6100, pricing_delta_err_6_mean[8], paste0("6"), col = "orange", adj = 0)
+# text(6100, pricing_delta_err_7_mean[8], paste0("7"), col = "orange", adj = 0)
+# text(6100, pricing_delta_err_8_mean[8], paste0("8"), col = "orange", adj = 0)
+# text(6100, pricing_delta_err_9_mean[8], paste0("9"), col = "orange", adj = 0)
 text(6100, w_05_delta_err_3_mean[8], paste0("3"), col = "blue", adj = 0)
 text(6100, w_05_delta_err_4_mean[8], paste0("4"), col = "blue", adj = 0)
-text(6100, w_05_delta_err_5_mean[8], paste0("5"), col = "blue", adj = 0)
+text(6150, w_05_delta_err_5_mean[8], paste0("5"), col = "blue", adj = 0)
 text(6100, w_05_delta_err_6_mean[8], paste0("6"), col = "blue", adj = 0)
-text(6100, w_05_delta_err_7_mean[8], paste0("7"), col = "blue", adj = 0)
+text(6150, w_05_delta_err_7_mean[8], paste0("7"), col = "blue", adj = 0)
 text(6100, w_05_delta_err_8_mean[8], paste0("8"), col = "blue", adj = 0)
-text(6100, w_05_delta_err_9_mean[8], paste0("9"), col = "blue", adj = 0)
+text(6150, w_05_delta_err_9_mean[8], paste0("9"), col = "blue", adj = 0)
 text(0, 0, "K = 1, T = 1, vol = 0.2, dt = 1/52, #repetitions = 1000", adj = 0)
 if(params$save_plots == TRUE){
   dev.off()
 }
 ```
 
-# S.3 - Figure 4
+# S.3
 ## S.3 - Figure 4
 ```{r, warning = FALSE, message = FALSE}
 seed <- 42
@@ -537,7 +537,7 @@ for(j in 1:batch_size){
 }
 ```
 
-## S.2 - Figure 4 plot
+## S.3 - Figure 4 plot
 ```{r}
 lrm_3_mean <- colMeans(lrm_3)
 lrm_8_mean <- colMeans(lrm_8)
@@ -561,6 +561,245 @@ text(0, true_delta_err_mean[1]+0.02, paste0("Heding with true Delta"), col = "re
 text(2000, 0.8, "Orange curves: LRM method", adj = 0, col = "orange")
 text(2000, 0.875, "Blue curves: Pathwise method", adj = 0, col = "blue")
 text(0, 0, "K = 1, T = 1, vol = 0.2, dt = 1/52, #repetitions = 1000", adj = 0)
+if(params$save_plots == TRUE){
+  dev.off()
+}
+```
+
+# S.4 
+## S.4 - Figure 2
+```{r, fig.width = 3, fig.height = 3}
+set.seed(1)
+
+K <- 1
+d <- 1
+Tt <- 1
+sigma <- 0.2
+num_ite <- 10000
+call_prices <- c(rep(0, num_ite))
+rand_norm_0 <- rnorm(num_ite)
+rand_norm_T <- rnorm(num_ite)
+
+# Simulated call prices
+S_0 <- K * exp(-1/2 * sigma^2 * Tt + sigma * sqrt(Tt) * rand_norm_T)
+S_0 <- S_0 %>% as_tibble() %>% arrange(value) %>% pull()
+S_T <- S_0 * exp(-1/2 * sigma^2 * Tt + sigma * sqrt(Tt) * rand_norm_T)
+
+call_prices <- sapply(S_T, FUN = function(x) ifelse(x >= K, 1, 0))
+
+# LM
+call_simulations <- cbind(S_0, call_prices) %>% 
+  as_data_frame()
+est_pricing_func <- lm(call_prices ~ poly(S_0, 7, raw=TRUE), data = call_simulations)
+
+# True pricing function
+true_prices <- digital_call(St = S_0, K = K, sigma = sigma, Tt = Tt)$Price
+S_0_to_plot <- S_0 
+if(params$save_plots == TRUE){
+  png("s4fig2.png", width = 1200, height = 600)
+}
+par(mfrow=c(1,2))
+plot(x = S_0, y = call_prices, 
+       col = 'grey',
+       ylab = "Call value",
+       xlab = "Stock price") + 
+    lines(S_0_to_plot, 
+          est_pricing_func$fitted.values, col = 'red', type = 'l') + 
+    lines(S_0_to_plot, 
+          true_prices, 
+          type = 'l')+ 
+  title("Digital Option - Black Scholes")
+
+derr_pricing_func_val <- est_derr_pricing_function(est_pricing_func$coefficients[-1],
+                                                    S_0_to_plot)
+# actual derrivatives
+
+true_derr <- true_delta(St = S_0, K = K, sigma = sigma, Tt = Tt, BS = TRUE, digital = TRUE)$delta
+
+plot(S_0_to_plot, 
+  derr_pricing_func_val, 
+  type = 'l',
+  col = 'red',
+  ylab = "Call Delta",
+  xlab = "Stock price", add = TRUE) + 
+  lines(S_0_to_plot,
+        true_derr) + 
+  title("Digital Option - Black Scholes")
+if(params$save_plots == TRUE){
+  dev.off()
+}
+```
+## S.4 - Figure 3
+```{r, fig.width = 3, fig.height = 3}
+plot_index <- S_0_to_plot %>% as_tibble() %>% filter(value < 0.5)
+
+f_w_05 <- calculate_delta(S_0, sigma, 1, 0.5, BS = TRUE, digital = TRUE, LRM = TRUE)
+
+f_w_0 <- calculate_delta(S_0, sigma, 1, 1e-12, BS = TRUE, digital = TRUE, LRM = TRUE)
+
+remove_from_plot <- -c(seq(dim(plot_index)[1]))
+if(params$save_plots == TRUE){
+  png("s4fig3.png", width = 800, height = 800)
+}
+plot(y = f_w_05$D, 
+        x = S_0_to_plot, col = "grey", type = "p",
+     #xlim = c(0.2, 1.7), ylim = c(-0.1, 1.3), 
+     xlab=("Stock price"), ylab=("Call Delta"), title = ("Est"), ylim = c(-2, 15), xlim = c(0.1, 2.1))
+text(4, 9, "True Delta")+ 
+  lines(S_0_to_plot[remove_from_plot],
+       true_derr[remove_from_plot], col = "black")+ 
+  lines(y = f_w_05$delta[remove_from_plot], 
+        x = S_0_to_plot[remove_from_plot], type = 'l', col = "red") +
+  lines(S_0_to_plot[remove_from_plot], 
+  derr_pricing_func_val[remove_from_plot], col = "blue") + 
+  lines(y = f_w_0$delta[remove_from_plot], 
+        x = S_0_to_plot[remove_from_plot], col = "orange")
+text(0.22, 10, "Black: True Delta", col = "black", adj = 0)
+text(0.22, 9, "Blue: Price only-regression", col = "blue", adj = 0)
+text(0.22, 8, "Red: Half/half-regression", col = "red", adj = 0)
+text(0.22, 7, "Orange: Delta only-regression", col = "orange", adj = 0)
+text(0.22, 13, "Grey o's: Simulated Deltas", col = "grey", adj = 0)
+if(params$save_plots == TRUE){
+  dev.off()
+}
+```
+## S.4 - Figure 4
+```{r, warning = FALSE, message = FALSE}
+seed <- 42
+K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 10000; w <- 0.5;batch_size <- 10
+simulations <- c(400, 600, 1000, 2000, 3000, 4000, 5000, 6000)
+true_delta_err <- lrm_3 <- lrm_8 <- std_3 <- std_8 <- matrix(c(rep(0, length(simulations)*batch_size)), ncol = length(simulations))
+initial_price <- digital_call(St = 1, K = K, sigma = sigma, Tt = Tt)$Price
+for(j in 1:batch_size){
+  for(i in 1:length(simulations)){
+    set.seed(j)
+    # seed <- j+11
+    #seed <- j
+    num_sim <- simulations[i]
+    St <- c(rep(1, num_rep))
+    rand_norm_0 <- rnorm(num_sim)
+    S_0 <- K * exp(-1/2 * sigma^2 * Tt + sigma * sqrt(Tt) * rand_norm_0)
+    S_0 <- S_0 %>% as_tibble() %>% arrange(value) %>% pull()
+
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, 
+                                 true_delta, pol_degree = 7, seed = seed, BS = TRUE, 
+                                 call_func = digital_call, digital = TRUE, LRM = TRUE)
+    true_delta_err[j, i] <- err / initial_price
+    
+    ### Calculating using w = 0.5 
+    coefs <- NULL
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, 
+                                 calculate_delta, pol_degree = 3, w = 0.5, seed = seed, coefs = coefs, 
+                                 BS = TRUE, call_func = digital_call, LRM = TRUE, digital = TRUE)
+    lrm_3[j, i] <- err / initial_price
+    
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, 
+                                 calculate_delta, pol_degree = 8, w = 0.5, seed = seed, coefs = coefs, 
+                                 BS = TRUE, call_func = digital_call, LRM = TRUE, digital = TRUE)
+    lrm_8[j, i] <- err / initial_price
+    
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0,
+                                 calculate_delta_price, pol_degree = 3, w = 1, seed = seed, coefs = coefs,
+                                 BS = TRUE, call_func = BS_func, LRM = FALSE, digital = TRUE)
+    std_3[j, i] <- err / initial_price
+
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0,
+                                 calculate_delta_price, pol_degree = 8, w = 1, seed = seed, coefs = coefs,
+                                 BS = TRUE, call_func = BS_func, LRM = FALSE, digital = TRUE)
+    std_8[j, i] <- err / initial_price
+    
+  }
+}
+```
+
+## S.3 - Figure 4 plot
+```{r}
+lrm_3_mean <- colMeans(lrm_3)
+lrm_8_mean <- colMeans(lrm_8)
+std_3_mean <- colMeans(std_3)
+std_8_mean <- colMeans(std_8)
+true_delta_err_mean <- colMeans(true_delta_err)
+
+if(params$save_plots == TRUE){
+  png("s4fig4.png", width = 800, height = 600)
+}
+plot(y = lrm_3_mean, simulations, type = 'b', ylim = c(0.0, 1), xlim = c(0, 6500), col = "orange",
+     ylab = "Standard deviation of relative hedge error", xlab = "#simulations") +
+  lines(y = lrm_8_mean, x = simulations, type = 'b', col = "orange")+
+  lines(y = std_3_mean, x = simulations, type = 'b', col = "blue")+
+  lines(y = std_8_mean, x = simulations, type = 'b', col = "blue")
+abline(h = true_delta_err_mean[1], col = "red", lty = 2)
+text(6100, lrm_3_mean[8], paste0("3"), col = "orange", adj = 0)
+text(6100, lrm_8_mean[8], paste0("8"), col = "orange", adj = 0)
+text(6200, std_3_mean[8], paste0("3"), col = "blue", adj = 0)
+text(6200, std_8_mean[8], paste0("8"), col = "blue", adj = 0)
+text(0, true_delta_err_mean[1]+0.02, paste0("Heding with true Delta"), col = "red", adj = 0)
+text(2000, 0.8, "Orange curves: Delta/Price", adj = 0, col = "orange")
+text(2000, 0.875, "Blue curves: Price only", adj = 0, col = "blue")
+text(0, 0, "K = 1, T = 1, vol = 0.2, dt = 1/52, #repetitions = 1000", adj = 0)
+if(params$save_plots == TRUE){
+  dev.off()
+}
+```
+# S.5
+## S.5 - Figure 2
+```{r, fig.width = 3, fig.height = 3}
+set.seed(1)
+
+K <- 1
+d <- 1
+Tt <- 1
+sigma <- 0.2
+num_ite <- 10000
+call_prices <- c(rep(0, num_ite))
+rand_norm_0 <- rnorm(num_ite)
+rand_norm_T <- rnorm(num_ite)
+
+# Simulated call prices
+S_0 <- K * exp(-1/2 * sigma^2 * Tt + sigma * sqrt(Tt) * rand_norm_T)
+S_0 <- S_0 %>% as_tibble() %>% arrange(value) %>% pull()
+S_T <- S_0 * exp(-1/2 * sigma^2 * Tt + sigma * sqrt(Tt) * rand_norm_T)
+
+call_prices <- sapply(S_T, FUN = function(x) ifelse(x >= K, 1, 0))
+
+# LM
+call_simulations <- cbind(S_0, call_prices) %>% 
+  as_data_frame()
+est_pricing_func <- lm(call_prices ~ poly(S_0, 7, raw=TRUE), data = call_simulations)
+
+# True pricing function
+true_prices <- digital_call(St = S_0, K = K, sigma = sigma, Tt = Tt)$Price
+S_0_to_plot <- S_0 
+if(params$save_plots == TRUE){
+  png("s4fig2.png", width = 1200, height = 600)
+}
+par(mfrow=c(1,2))
+plot(x = S_0, y = call_prices, 
+       col = 'grey',
+       ylab = "Call value",
+       xlab = "Stock price") + 
+    lines(S_0_to_plot, 
+          est_pricing_func$fitted.values, col = 'red', type = 'l') + 
+    lines(S_0_to_plot, 
+          true_prices, 
+          type = 'l')+ 
+  title("Digital Option - Black Scholes")
+
+derr_pricing_func_val <- est_derr_pricing_function(est_pricing_func$coefficients[-1],
+                                                    S_0_to_plot)
+# actual derrivatives
+
+true_derr <- true_delta(St = S_0, K = K, sigma = sigma, Tt = Tt, BS = TRUE, digital = TRUE)$delta
+
+plot(S_0_to_plot, 
+  derr_pricing_func_val, 
+  type = 'l',
+  col = 'red',
+  ylab = "Call Delta",
+  xlab = "Stock price", add = TRUE) + 
+  lines(S_0_to_plot,
+        true_derr) + 
+  title("Digital Option - Black Scholes")
 if(params$save_plots == TRUE){
   dev.off()
 }

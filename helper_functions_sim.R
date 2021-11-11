@@ -3,7 +3,7 @@ calculate_theta_coefs <- function(w, X, Y, C, D) {
          (w * t(X) %*% C + (1 - w) * t(Y) %*% D))
 }
 
-calculate_delta <- function(S0, sigma, Tt, w, K = 1, pol_degree = 7, St = NULL, coefs = NULL, BS = FALSE, LRM = FALSE){
+calculate_delta <- function(S0, sigma, Tt, w, K = 1, pol_degree = 7, St = NULL, coefs = NULL, BS = FALSE, LRM = FALSE, digital = FALSE){
   if(is.null(coefs)){
     #set.seed(1)
     rand_norm_T <- rnorm(length(S0))
@@ -16,6 +16,11 @@ calculate_delta <- function(S0, sigma, Tt, w, K = 1, pol_degree = 7, St = NULL, 
         pull()
     } else {
       S_T <- S0 * exp(-1/2 * sigma^2*Tt + sigma * sqrt(Tt) * rand_norm_T)
+      if(digital == TRUE){
+        payoff <- ifelse(S_T >= K, 1, 0)
+      } else {
+        payoff <- (S_T - K) * ifelse(S_T >= K, 1, 0)
+      }
       if(LRM == FALSE) {
         D <- cbind(S_T, S0) %>% 
           as_tibble() %>% 
@@ -24,7 +29,7 @@ calculate_delta <- function(S0, sigma, Tt, w, K = 1, pol_degree = 7, St = NULL, 
       } else {
         D <- cbind(S_T, S0) %>% 
           as_tibble() %>% 
-          transmute(D_val = (S_T - K) * ifelse(S_T >= K, 1, 0) * rand_norm_T / (sigma * sqrt(Tt) * S0)) %>% 
+          transmute(D_val = payoff * rand_norm_T / (sigma * sqrt(Tt) * S0)) %>% 
           pull()
       }
     }
@@ -77,7 +82,7 @@ est_derr_pricing_function <- function(coefs, S0, pol_degree = 7){
   return((S0_6 %*% (c(2:pol_degree) * coefs[2:pol_degree])) + coefs[1])
 }
 
-calculate_delta_price <- function(S0, sigma, Tt, K = NULL, w = NULL, pol_degree = 7, St = NULL, coefs = NULL, BS = FALSE, LRM = FALSE){
+calculate_delta_price <- function(S0, sigma, Tt, K = NULL, w = NULL, pol_degree = 7, St = NULL, coefs = NULL, BS = FALSE, LRM = FALSE, digital = F){
   #set.seed(1)
   rand_norm_T <- rnorm(length(S0))
   #S0 <- 1 + sigma * sqrt(Tt) * rand_norm_T
@@ -86,7 +91,7 @@ calculate_delta_price <- function(S0, sigma, Tt, K = NULL, w = NULL, pol_degree 
   } else {
     S_T <- S0 * exp((1/2 * sigma^2)*Tt + sigma * sqrt(Tt) * rand_norm_T)
   }
-  call_prices <- sapply(S_T, FUN = function(x)max(x - K, 0))
+  call_prices <- sapply(S_T, FUN = function(x)ifelse(x >= K, 1, 0))
   
   # LM
   call_simulations <- cbind(S0, call_prices) %>% 
@@ -108,28 +113,39 @@ calculate_delta_price <- function(S0, sigma, Tt, K = NULL, w = NULL, pol_degree 
   return(list(delta = derr_pricing_func_val))
 }
 
-true_delta <- function(S0 = NULL, K, sigma, Tt, w = NULL, pol_degree = NULL, St, coefs = NULL, BS = FALSE, LRM = FALSE){
-  if(BS == FALSE){
-    return(list(delta = pnorm((St-K)/(sigma * sqrt(Tt)))))
+true_delta <- function(S0 = NULL, K, sigma, Tt, w = NULL, pol_degree = NULL, St, coefs = NULL, BS = FALSE, LRM = FALSE, digital = FALSE){
+  if(digital == FALSE){
+    if(BS == FALSE){
+      return(list(delta = pnorm((St-K)/(sigma * sqrt(Tt)))))
+    } else {
+      return(list(delta = pnorm((log(St / K) + (1/2 * sigma^2) * Tt) / (sigma * sqrt(Tt)))))
+    }
   } else {
-    return(list(delta = pnorm((log(St / K) + (1/2 * sigma^2) * Tt) / (sigma * sqrt(Tt)))))
+    d1 <- (log(St / K) + 1/2 * sigma^2 * Tt) / (sigma * sqrt(Tt))
+    return(list(delta = (dnorm(d1 - sigma * sqrt(Tt))) / (St * sqrt(Tt) * sigma)))
   }
 }
 
-ZeroRateBachelierCall<-function(St, Tt, K, sigma){
+ZeroRateBachelierCall <- function(St, Tt, K, sigma){
   d<-(St-K)/(sigma*sqrt(Tt))
   CallDelta<-pnorm(d,0,1)
   CallPrice<-(St-K)*CallDelta+sigma*sqrt(Tt)*dnorm(d,0,1)
   return(list(Price=CallPrice, delta=CallDelta))
 }
 
+digital_call <- function(St, Tt, K, sigma){
+  d1 = (log(St / K) + 1/2 * sigma^2 * Tt) / (sigma * sqrt(Tt))
+  d2 = d1 - sigma * sqrt(Tt)
+  return(list(Price = pnorm(d2)))
+}
+
 calculate_hedge_error <- function(dt = 1/52, Tt, num_rep, K, sigma, St, S0, delta_func, w = NULL, pol_degree = 7, seed = 3, 
-                                  call_func = ZeroRateBachelierCall, coefs = NULL, BS = FALSE, LRM = FALSE){
+                                  call_func = ZeroRateBachelierCall, coefs = NULL, BS = FALSE, LRM = FALSE, digital = FALSE){
   set.seed(seed)
   # Initializing values
   initial_price <- call_func(St = St, Tt = Tt, K = K, sigma = sigma)$Price
   Vt <- initial_price
-  at <- true_delta(S0 = S0, Tt = Tt, K = K, sigma = sigma, w = w, pol_degree = pol_degree, St = St, BS = BS, LRM = LRM)$delta
+  at <- true_delta(S0 = S0, Tt = Tt, K = K, sigma = sigma, w = w, pol_degree = pol_degree, St = St, BS = BS, LRM = LRM, digital = digital)$delta
   bt <- Vt-at*St
   rand_norm_0 <- rnorm(num_sim)
   
@@ -147,7 +163,7 @@ calculate_hedge_error <- function(dt = 1/52, Tt, num_rep, K, sigma, St, S0, delt
       St <- St * exp(-1/2 * sigma^2 * dt + sigma * sqrt(dt) * rnorm(num_rep))
     }
     Vt <- at * St + bt
-    at <- delta_func(S0 = S0, Tt = 1-t, K = K, sigma = sigma, w = w, pol_degree = pol_degree, St = St, coefs = coefs, BS = BS, LRM = LRM)$delta
+    at <- delta_func(S0 = S0, Tt = 1-t, K = K, sigma = sigma, w = w, pol_degree = pol_degree, St = St, coefs = coefs, BS = BS, LRM = LRM, digital = digital)$delta
     bt <- Vt - at * St
   }
   
@@ -157,7 +173,7 @@ calculate_hedge_error <- function(dt = 1/52, Tt, num_rep, K, sigma, St, S0, delt
     St <- St * exp(-1/2 * sigma^2 * dt + sigma * sqrt(dt) * rnorm(num_rep))
   }
   Vt <- at * St + bt
-  err <- sd(Vt - sapply(St, FUN = function(x)max(x - K, 0)))
+  err <- sd(Vt - sapply(St, FUN = function(x)ifelse(x >= K, 1, 0)))
   return(err)
 }
 
