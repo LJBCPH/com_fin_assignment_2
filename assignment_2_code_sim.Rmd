@@ -121,7 +121,7 @@ pricing_delta_err_9 <- w_05_delta_err_9 <- w_05_delta_err_7
 initial_price <- ZeroRateBachelierCall(1, Tt, K, sigma)$Price
 for(j in 1:batch_size){
   for(i in 1:length(simulations)){
-    set.seed(10)
+    set.seed(j)
     num_sim <- simulations[i]
     St <- c(rep(1, num_rep))
     rand_norm_0 <- rnorm(num_sim)
@@ -213,7 +213,21 @@ plot(y = true_delta_err, simulations, type = 'l', lty = 2, ylim = c(0.09, 0.4), 
   lines(y = w_05_delta_err_7, x = simulations, type = 'b', col = "blue")+
   lines(y = w_05_delta_err_8, x = simulations, type = 'b', col = "blue")+
   lines(y = w_05_delta_err_9, x = simulations, type = 'b', col = "blue")
-
+text(200, true_delta_err[1]+0.02, paste0("Heding with true Delta"), col = "red", cex = .65, adj = 0)
+text(6100, pricing_delta_err_3[8], paste0("3"), col = "orange", cex = .65, adj = 0)
+text(6100, pricing_delta_err_4[8], paste0("4"), col = "orange", cex = .65, adj = 0)
+text(6100, pricing_delta_err_5[8], paste0("5"), col = "orange", cex = .65, adj = 0)
+text(6100, pricing_delta_err_6[8], paste0("6"), col = "orange", cex = .65, adj = 0)
+text(6100, pricing_delta_err_7[8], paste0("7"), col = "orange", cex = .65, adj = 0)
+text(6100, pricing_delta_err_8[8], paste0("8"), col = "orange", cex = .65, adj = 0)
+text(6100, pricing_delta_err_9[8], paste0("9"), col = "orange", cex = .65, adj = 0)
+text(6100, w_05_delta_err_3[8], paste0("3"), col = "blue", cex = .65, adj = 0)
+text(6100, w_05_delta_err_4[8], paste0("4"), col = "blue", cex = .65, adj = 0)
+text(6100, w_05_delta_err_5[8], paste0("5"), col = "blue", cex = .65, adj = 0)
+text(6100, w_05_delta_err_6[8], paste0("6"), col = "blue", cex = .65, adj = 0)
+text(6100, w_05_delta_err_7[8], paste0("7"), col = "blue", cex = .65, adj = 0)
+text(6100, w_05_delta_err_8[8], paste0("8"), col = "blue", cex = .65, adj = 0)
+text(6100, w_05_delta_err_9[8], paste0("9"), col = "blue", cex = .65, adj = 0)
 ```
 
 # S.2
@@ -305,7 +319,7 @@ text(0.22, 1.2, "Grey o's: Simulated Deltas", col = "grey", cex = .65, adj = 0)
 ## S.2 - Figure 4
 ```{r, warning = FALSE, message = FALSE}
 seed <- 42
-K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 10000; w <- 0.5;batch_size <- 1
+K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 1000; w <- 0.5;batch_size <- 10
 simulations <- c(400, 600, 1000, 2000, 3000, 4000, 5000, 6000)
 true_delta_err <- w_05_delta_err_7 <- matrix(c(rep(0, length(simulations)*batch_size)), ncol = length(simulations))
 pricing_delta_err_3 <- w_05_delta_err_3 <- w_05_delta_err_7
@@ -315,11 +329,11 @@ pricing_delta_err_6 <- w_05_delta_err_6 <- w_05_delta_err_7
 pricing_delta_err_7 <- w_05_delta_err_7 <- w_05_delta_err_7
 pricing_delta_err_8 <- w_05_delta_err_8 <- w_05_delta_err_7
 pricing_delta_err_9 <- w_05_delta_err_9 <- w_05_delta_err_7
-initial_price <- BS_func(1, K, sigma, Tt)$Price
+initial_price <- BS_func(St = 1, K = K, sigma = sigma, Tt = Tt)$Price
 for(j in 1:batch_size){
   for(i in 1:length(simulations)){
     set.seed(j)
-    seed <- j
+    #seed <- j
     num_sim <- simulations[i]
     St <- c(rep(1, num_rep))
     rand_norm_0 <- rnorm(num_sim)
@@ -420,21 +434,36 @@ plot(y = true_delta_err_mean, simulations, type = 'l', lty = 2, ylim = c(0.09, 1
   lines(y = w_05_delta_err_7_mean, x = simulations, type = 'b', col = "blue")+
   lines(y = w_05_delta_err_8_mean, x = simulations, type = 'b', col = "blue")+
   lines(y = w_05_delta_err_9_mean, x = simulations, type = 'b', col = "blue")
-
+text(200, true_delta_err_mean[1]+0.02, paste0("Heding with true Delta"), col = "red", cex = .65, adj = 0)
+text(6100, pricing_delta_err_3_mean[8], paste0("3"), col = "orange", cex = .65, adj = 0)
+text(6100, pricing_delta_err_4_mean[8], paste0("4"), col = "orange", cex = .65, adj = 0)
+text(6100, pricing_delta_err_5_mean[8], paste0("5"), col = "orange", cex = .65, adj = 0)
+text(6100, pricing_delta_err_6_mean[8], paste0("6"), col = "orange", cex = .65, adj = 0)
+text(6100, pricing_delta_err_7_mean[8], paste0("7"), col = "orange", cex = .65, adj = 0)
+text(6100, pricing_delta_err_8_mean[8], paste0("8"), col = "orange", cex = .65, adj = 0)
+text(6100, pricing_delta_err_9_mean[8], paste0("9"), col = "orange", cex = .65, adj = 0)
+text(6100, w_05_delta_err_3_mean[8], paste0("3"), col = "blue", cex = .65, adj = 0)
+text(6100, w_05_delta_err_4_mean[8], paste0("4"), col = "blue", cex = .65, adj = 0)
+text(6100, w_05_delta_err_5_mean[8], paste0("5"), col = "blue", cex = .65, adj = 0)
+text(6100, w_05_delta_err_6_mean[8], paste0("6"), col = "blue", cex = .65, adj = 0)
+text(6100, w_05_delta_err_7_mean[8], paste0("7"), col = "blue", cex = .65, adj = 0)
+text(6100, w_05_delta_err_8_mean[8], paste0("8"), col = "blue", cex = .65, adj = 0)
+text(6100, w_05_delta_err_9_mean[8], paste0("9"), col = "blue", cex = .65, adj = 0)
 ```
 
 # S.3 - Figure 4
 ## S.3 - Figure 4
 ```{r, warning = FALSE, message = FALSE}
 seed <- 42
-K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 10000; w <- 0.5;batch_size <- 10
+K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 1000; w <- 0.5;batch_size <- 10
 simulations <- c(400, 600, 1000, 2000, 3000, 4000, 5000, 6000)
 lrm_3 <- lrm_8 <- std_3 <- std_8 <- matrix(c(rep(0, length(simulations)*batch_size)), ncol = length(simulations))
 initial_price <- BS_func(1, K, sigma, Tt)$Price
 for(j in 1:batch_size){
   for(i in 1:length(simulations)){
     set.seed(j)
-    seed <- j
+    # seed <- j+11
+    #seed <- j
     num_sim <- simulations[i]
     St <- c(rep(1, num_rep))
     rand_norm_0 <- rnorm(num_sim)
@@ -474,7 +503,7 @@ lrm_8_mean <- colMeans(lrm_8)
 std_3_mean <- colMeans(std_3)
 std_8_mean <- colMeans(std_8)
 
-plot(y = lrm_3_mean, simulations, type = 'b', ylim = c(0.09, 2), xlim = c(0, 6500), col = "orange") +
+plot(y = lrm_3_mean, simulations, type = 'b', ylim = c(0.09, 1), xlim = c(0, 6500), col = "orange") +
   lines(y = lrm_8_mean, x = simulations, type = 'b', col = "orange")+
   lines(y = std_3_mean, x = simulations, type = 'b', col = "blue")+
   lines(y = std_8_mean, x = simulations, type = 'b', col = "blue") 

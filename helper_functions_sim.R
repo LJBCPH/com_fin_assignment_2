@@ -4,7 +4,6 @@ calculate_theta_coefs <- function(w, X, Y, C, D) {
 }
 
 calculate_delta <- function(S0, sigma, Tt, w, K = 1, pol_degree = 7, St = NULL, coefs = NULL, BS = FALSE, LRM = FALSE){
-  
   if(is.null(coefs)){
     #set.seed(1)
     rand_norm_T <- rnorm(length(S0))
@@ -17,17 +16,17 @@ calculate_delta <- function(S0, sigma, Tt, w, K = 1, pol_degree = 7, St = NULL, 
         pull()
     } else {
       S_T <- S0 * exp(-1/2 * sigma^2*Tt + sigma * sqrt(Tt) * rand_norm_T)
-    if(LRM == FALSE) {
-      D <- cbind(S_T, S0) %>% 
-        as_tibble() %>% 
-        transmute(D_val = S_T * ifelse(S_T >= K, 1, 0) / S0) %>% 
-        pull()
-    } else {
-      D <- cbind(S_T, S0) %>% 
-        as_tibble() %>% 
-        transmute(D_val = (S_T - K) * ifelse(S_T >= K, 1, 0) * rand_norm_T/(sigma*sqrt(Tt)*S0)) %>% 
-        pull()
-    }
+      if(LRM == FALSE) {
+        D <- cbind(S_T, S0) %>% 
+          as_tibble() %>% 
+          transmute(D_val = S_T * ifelse(S_T >= K, 1, 0) / S0) %>% 
+          pull()
+      } else {
+        D <- cbind(S_T, S0) %>% 
+          as_tibble() %>% 
+          transmute(D_val = (S_T - K) * ifelse(S_T >= K, 1, 0) * rand_norm_T / (sigma * sqrt(Tt) * S0)) %>% 
+          pull()
+      }
     }
     zeroes <- c(rep(0, length(S0)))
     
@@ -109,7 +108,7 @@ calculate_delta_price <- function(S0, sigma, Tt, K = NULL, w = NULL, pol_degree 
   return(list(delta = derr_pricing_func_val))
 }
 
-true_delta <- function(S0, K, sigma, Tt, w, pol_degree, St, coefs = NULL, BS = FALSE, LRM = FALSE){
+true_delta <- function(S0 = NULL, K, sigma, Tt, w = NULL, pol_degree = NULL, St, coefs = NULL, BS = FALSE, LRM = FALSE){
   if(BS == FALSE){
     return(list(delta = pnorm((St-K)/(sigma * sqrt(Tt)))))
   } else {
@@ -123,38 +122,6 @@ ZeroRateBachelierCall<-function(St, Tt, K, sigma){
   CallPrice<-(St-K)*CallDelta+sigma*sqrt(Tt)*dnorm(d,0,1)
   return(list(Price=CallPrice, delta=CallDelta))
 }
-
-#fit_poly <- function(S0, repetitions = 10000, pol_degree, K, sigma, Tt, w, bachelier = TRUE, St, BS = FALSE, coefs = NULL){
-    # Polynomial Regression Estimation
-#     set.seed(1)
-#     sims <- length(S0)
-#     powers<-0:pol_degree
-#     M<-length(powers)
-#     Sim1<-rnorm(sims)
-#     Sim2<-rnorm(sims)
-#     
-#       S1<-1+sigma*sqrt(1)*Sim1
-#       S2<-S1+sigma*sqrt(Tt)*Sim2
-#       CallPayoff<-pmax(S2-K,0)
-#       CallDelta<-S2>K
-#       X1<-S1^0; 
-#       X2<-rep(0, length(S1))
-#       
-#       deltas<-sd(CallPayoff)/sd(CallDelta)
-#       
-#       for (k in 2:length(powers)) {
-#         X1<-cbind(X1,S1^powers[k])
-#         X2<-cbind(X2,powers[k]*S1^(powers[k]-1))
-#       }
-#       
-#       OLSCoef<-solve((w*t(X1)%*%X1+(1-w)*t(X2)%*%X2),(w*t(X1)%*%CallPayoff + (1-w)*t(X2)%*%CallDelta))
-#       
-#       deltas <- rep(0, repetitions)
-#       for (k in 1:repetitions) {
-#         deltas[k]<-OLSCoef[2:M]%*%(powers[2:M]*St[k]^(powers[2:M]-1))
-#       }
-#       return(list(delta = deltas))
-# }
 
 calculate_hedge_error <- function(dt = 1/52, Tt, num_rep, K, sigma, St, S0, delta_func, w = NULL, pol_degree = 7, seed = 3, 
                                   call_func = ZeroRateBachelierCall, coefs = NULL, BS = FALSE, LRM = FALSE){
@@ -170,7 +137,6 @@ calculate_hedge_error <- function(dt = 1/52, Tt, num_rep, K, sigma, St, S0, delt
     S0 <- K + d * sigma * sqrt(Tt) * rand_norm_0
   }else{
     S_0 <- K * exp(-1/2 * sigma^2 * Tt + sigma * sqrt(Tt) * rand_norm_0)
-    #S0 <- K + d * sigma * sqrt(Tt) * rand_norm_0
   }
   
   ### LOOPING THROUGH ALL TIME TO MATURITIES AND UPDATING VALUE OF HEDGEPORTFOLIO
