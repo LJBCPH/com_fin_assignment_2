@@ -667,9 +667,11 @@ if(params$save_plots == TRUE){
 ## S.4 - Figure 4
 ```{r, warning = FALSE, message = FALSE}
 seed <- 43
-K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 1000; w <- 0.5;batch_size <- 1
+K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 1000; w <- 0.5;batch_size <- 10
 simulations <- c(400, 600, 1000, 2000, 3000, 4000, 5000, 6000)
 true_delta_err <- delta_lrm_3 <- delta_lrm_8 <- std_3 <- std_8 <- matrix(c(rep(0, length(simulations)*batch_size)), ncol = length(simulations))
+delta_lrm_5 <- delta_lrm_7 <- delta_lrm_3
+std_7 <- std_5 <- std_3 
 initial_price <- digital_call(St = 1, K = K, sigma = sigma, Tt = Tt)$Price
 for(j in 1:batch_size){
   for(i in 1:length(simulations)){
@@ -699,6 +701,16 @@ for(j in 1:batch_size){
                                  BS = TRUE, call_func = digital_call, LRM = TRUE, digital = TRUE)
     delta_lrm_8[j, i] <- err / initial_price
     
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, 
+                                 calculate_delta, pol_degree = 5, w = 0.5, seed = seed, coefs = coefs, 
+                                 BS = TRUE, call_func = digital_call, LRM = TRUE, digital = TRUE)
+    delta_lrm_5[j, i] <- err / initial_price
+    
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, 
+                                 calculate_delta, pol_degree = 7, w = 0.5, seed = seed, coefs = coefs, 
+                                 BS = TRUE, call_func = digital_call, LRM = TRUE, digital = TRUE)
+    delta_lrm_7[j, i] <- err / initial_price
+    
     err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0,
                                  calculate_delta_price, pol_degree = 3, w = 1, seed = seed, coefs = coefs,
                                  BS = TRUE, call_func = BS_func, LRM = FALSE, digital = TRUE)
@@ -708,6 +720,16 @@ for(j in 1:batch_size){
                                  calculate_delta_price, pol_degree = 8, w = 1, seed = seed, coefs = coefs,
                                  BS = TRUE, call_func = BS_func, LRM = FALSE, digital = TRUE)
     std_8[j, i] <- err / initial_price
+    
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0,
+                                 calculate_delta_price, pol_degree = 5, w = 1, seed = seed, coefs = coefs,
+                                 BS = TRUE, call_func = BS_func, LRM = FALSE, digital = TRUE)
+    std_5[j, i] <- err / initial_price
+
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0,
+                                 calculate_delta_price, pol_degree = 7, w = 1, seed = seed, coefs = coefs,
+                                 BS = TRUE, call_func = BS_func, LRM = FALSE, digital = TRUE)
+    std_7[j, i] <- err / initial_price
     
   }
 }
@@ -719,6 +741,10 @@ delta_lrm_3_mean <- colMeans(delta_lrm_3)
 delta_lrm_8_mean <- colMeans(delta_lrm_8)
 std_3_mean <- colMeans(std_3)
 std_8_mean <- colMeans(std_8)
+delta_lrm_5_mean <- colMeans(delta_lrm_5)
+delta_lrm_7_mean <- colMeans(delta_lrm_7)
+std_5_mean <- colMeans(std_5)
+std_7_mean <- colMeans(std_7)
 true_delta_err_mean <- colMeans(true_delta_err)
 
 if(params$save_plots == TRUE){
@@ -727,7 +753,12 @@ if(params$save_plots == TRUE){
 plot(y = delta_lrm_3_mean, simulations, type = 'b', ylim = c(0.0, 1), xlim = c(0, 6500), col = "blue",
      ylab = "Standard deviation of relative hedge error", xlab = "#simulations") +
   lines(y = delta_lrm_8_mean, x = simulations, type = 'b', col = "blue")+
+  lines(y = delta_lrm_5_mean, x = simulations, type = 'b', col = "blue")+
+  lines(y = delta_lrm_7_mean, x = simulations, type = 'b', col = "blue")+
+  lines(y = delta_lrm_8_mean, x = simulations, type = 'b', col = "blue")+
   lines(y = std_3_mean, x = simulations, type = 'b', col = "orange")+
+  lines(y = std_5_mean, x = simulations, type = 'b', col = "orange")+
+  lines(y = std_7_mean, x = simulations, type = 'b', col = "orange")+
   lines(y = std_8_mean, x = simulations, type = 'b', col = "orange")
 abline(h = true_delta_err_mean[1], col = "red", lty = 2)
 text(6100, delta_lrm_3_mean[8], paste0("3"), col = "blue", adj = 0)
@@ -880,9 +911,11 @@ if(params$save_plots == TRUE){
 ## S.5 - Figure 4
 ```{r, warning = FALSE, message = FALSE}
 seed <- 43
-K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 1000; w <- 0.5;batch_size <- 1
+K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 1000; w <- 0.5;batch_size <- 10
 simulations <- c(400, 600, 1000, 2000, 3000, 4000, 5000, 6000)
 true_delta_err <- delta_lrm_3 <- delta_lrm_8 <- std_3 <- std_8 <- matrix(c(rep(0, length(simulations)*batch_size)), ncol = length(simulations))
+delta_lrm_5 <- delta_lrm_7 <- delta_lrm_3
+std_5 <- std_7 <- std_3
 initial_price <- digital_call(St = 1, K = K, sigma = sigma, Tt = Tt)$Price
 for(j in 1:batch_size){
   for(i in 1:length(simulations)){
@@ -912,6 +945,16 @@ for(j in 1:batch_size){
                                  BS = TRUE, call_func = digital_call, LRM = TRUE, digital = TRUE, MM = TRUE, eps = eps)
     delta_lrm_8[j, i] <- err / initial_price
     
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, 
+                                 calculate_delta, pol_degree = 5, w = 0.5, seed = seed, coefs = coefs, 
+                                 BS = TRUE, call_func = digital_call, LRM = TRUE, digital = TRUE, MM = TRUE, eps = eps)
+    delta_lrm_5[j, i] <- err / initial_price
+    
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, 
+                                 calculate_delta, pol_degree = 7, w = 0.5, seed = seed, coefs = coefs, 
+                                 BS = TRUE, call_func = digital_call, LRM = TRUE, digital = TRUE, MM = TRUE, eps = eps)
+    delta_lrm_7[j, i] <- err / initial_price
+    
     err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0,
                                  calculate_delta_price, pol_degree = 3, w = 1, seed = seed, coefs = coefs,
                                  BS = TRUE, call_func = BS_func, LRM = FALSE, digital = TRUE)
@@ -922,16 +965,30 @@ for(j in 1:batch_size){
                                  BS = TRUE, call_func = BS_func, LRM = FALSE, digital = TRUE)
     std_8[j, i] <- err / initial_price
     
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0,
+                                 calculate_delta_price, pol_degree = 7, w = 1, seed = seed, coefs = coefs,
+                                 BS = TRUE, call_func = BS_func, LRM = FALSE, digital = TRUE)
+    std_5[j, i] <- err / initial_price
+
+    err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0,
+                                 calculate_delta_price, pol_degree = 7, w = 1, seed = seed, coefs = coefs,
+                                 BS = TRUE, call_func = BS_func, LRM = FALSE, digital = TRUE)
+    std_7[j, i] <- err / initial_price
+    
   }
 }
 ```
 
 ## S.5 - Figure 4 plot
 ```{r}
-lrm_3_mean <- colMeans(lrm_3)
-lrm_8_mean <- colMeans(lrm_8)
+lrm_3_mean <- colMeans(delta_lrm_3)
+lrm_8_mean <- colMeans(delta_lrm_8)
 std_3_mean <- colMeans(std_3)
 std_8_mean <- colMeans(std_8)
+lrm_5_mean <- colMeans(delta_lrm_5)
+lrm_7_mean <- colMeans(delta_lrm_7)
+std_5_mean <- colMeans(std_5)
+std_7_mean <- colMeans(std_7)
 true_delta_err_mean <- colMeans(true_delta_err)
 
 if(params$save_plots == TRUE){
@@ -939,8 +996,12 @@ if(params$save_plots == TRUE){
 }
 plot(y = lrm_3_mean, simulations, type = 'b', ylim = c(0.0, 1), xlim = c(0, 6500), col = "blue",
      ylab = "Standard deviation of relative hedge error", xlab = "#simulations") +
+  lines(y = lrm_5_mean, x = simulations, type = 'b', col = "blue")+
+  lines(y = lrm_7_mean, x = simulations, type = 'b', col = "blue")+
   lines(y = lrm_8_mean, x = simulations, type = 'b', col = "blue")+
   lines(y = std_3_mean, x = simulations, type = 'b', col = "orange")+
+  lines(y = std_5_mean, x = simulations, type = 'b', col = "orange")+
+  lines(y = std_7_mean, x = simulations, type = 'b', col = "orange")+
   lines(y = std_8_mean, x = simulations, type = 'b', col = "orange")
 abline(h = true_delta_err_mean[1], col = "red", lty = 2)
 text(6100, lrm_3_mean[8], paste0("3"), col = "blue", adj = 0)

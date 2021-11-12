@@ -55,7 +55,7 @@ cn_all <- rbind(cn_02, cn_04) %>%
 diff[k] <- abs(cn_all$`Finite Difference - Crank Nicolson (European)` - true_sol_eu) %>% sum()
 }
 diff <- diff %>% as_tibble() %>% bind_cols(1:(grid_test[,1] %>% length())) %>% arrange(value)
-
+print(diff)
 timestep_eu <- grid_test[diff[1,2] %>% pull(), 1]
 xsteps_eu <- grid_test[diff[1, 2] %>% pull(), 2]
 cat("Best value: ", "time steps: ", grid_test[diff[1,2] %>% pull(), 1] , " x steps: ", grid_test[diff[1, 2] %>% pull(), 2])
@@ -104,7 +104,7 @@ cat("Best value: ", "time steps: ", timestep_us , " x steps: ", xsteps_us)
 ```{r}
 # Using Crank_Nicolson
 spots <- c(36, 38, 40, 42, 44)
-S <- c(36, 38, 40, 42, 44); col_names <- c("S", "sigma", "1", "2")
+S <- c(36, 38, 40, 42, 44); col_names <- c("S", "sigma", "2", "1")
 
 cn_02 <- crank_nicolson_eu(r = 0.06, Tt = 2, x_min = 0, x_max = 100, 
                         time_steps = timestep_eu, x_steps = xsteps_eu, sigma = 0.2, K = 40, spots = spots)
@@ -157,7 +157,7 @@ print(cn_all)
 ## Convergence of dx
 ```{r}
 time_steps_us <- 300; x_steps_us <- 1000;
-spots <- c(0, 10, 20, 35, 39, 40, 41, 45, 50, 60, 70, 80, 90, 100)
+spots <- c(0, 10, 20, 35, 39.9, 40, 40.1, 45, 50, 60, 70, 80, 90, 100)
 time_selections <- c(0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2)
 
 v1 <- crank_nicolson_us(r = 0.06, Tt = 2, x_min = 0, x_max = 100,
@@ -165,7 +165,7 @@ v1 <- crank_nicolson_us(r = 0.06, Tt = 2, x_min = 0, x_max = 100,
                         sigma = 0.2, K = 40, spots = spots, selected_times = time_selections)
 
 v2 <- crank_nicolson_us(r = 0.06, Tt = 2, x_min = 0, x_max = 100,
-                        time_steps = time_steps_us* 4, x_steps = x_steps_us * 2,
+                        time_steps = time_steps_us * 4, x_steps = x_steps_us * 2,
                         sigma = 0.2, K = 40, spots = spots, selected_times = time_selections)
 
 v3 <- crank_nicolson_us(r = 0.06, Tt = 2, x_min = 0, x_max = 100,
@@ -186,5 +186,9 @@ print(x_err)
 
 t_err <- (v4 - v5) / (v1 - v4)
 print(t_err)
+```
+# FD5
+```{r}
+
 ```
 
