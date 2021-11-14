@@ -19,7 +19,7 @@ tridagsoln<-function(a,b,c,r) {
 }
 ################################################
 
-################## Andreasens CODE ###################
+################## Jesper Andreasens CODE ###################
 tridagsoln<-function(a,b,c,r) {	
   
   dim <- length(b)
@@ -71,13 +71,13 @@ crank_nicolson_eu <- function(r, Tt, x_min, x_max, time_steps, x_steps, sigma, K
   rhs_step <- c(rep(0, x_steps - 1))
   
   mu <- r * grid_x
-  sigma_2 <- signs * sigma^2 * grid_x^(2*gamma)
+  
   if(dupire == FALSE) {
     signs <- 1
   } else {
     signs <- -1
   }
-  
+  sigma_2 <- signs * sigma^2 * grid_x^(2*gamma)
     a_lhs <- 1/4 * dt * (sigma_2 / (dx^2) - mu / dx)
     b_lhs <- -1 - 1/2 * dt * (sigma_2 / (dx^2) + r)
     c_lhs <- 1/4 * dt * (sigma_2 / (dx^2) + mu / dx)
@@ -86,9 +86,9 @@ crank_nicolson_eu <- function(r, Tt, x_min, x_max, time_steps, x_steps, sigma, K
     temp <- b_lhs
     b_lhs <- b_star
     b_star <- temp
-    temp <- K
-    K <- spots
-    spots <- temp
+    # temp <- K
+    # K <- spots
+    # spots <- temp
     rm(temp)
   }
     
@@ -96,7 +96,7 @@ crank_nicolson_eu <- function(r, Tt, x_min, x_max, time_steps, x_steps, sigma, K
     rhs_m <- diag(b_star[-c(1, (x_steps + 1))]) # diagonal
     rhs_m[row(rhs_m) - col(rhs_m) == 1] <- signs * -a_lhs[3:(x_steps)] # lower diagona l
     rhs_m[col(rhs_m) - row(rhs_m) == 1] <- signs * -c_lhs[2:(x_steps - 1)] # Upper diagonal
-    
+
     # Defining our f-vector from eq. 19 in Munks Note
     f <- matrix(0, nrow = x_steps + 1, ncol = time_steps + 1)
     if(dupire == FALSE){
@@ -109,13 +109,15 @@ crank_nicolson_eu <- function(r, Tt, x_min, x_max, time_steps, x_steps, sigma, K
     
     # Removing first and last input to create the shown matrix on the left hand side (eq. 19)
     a_lhs_mod <- signs * a_lhs[-c(1, x_steps + 1)]
-    b_lhs_mod <- signs * b_lhs[-c(1, x_steps + 1)]
+    b_lhs_mod <- b_lhs[-c(1, x_steps + 1)]
     c_lhs_mod <- signs * c_lhs[-c(1, x_steps + 1)]
-
-  for(i in time_steps:1){
-    rhs_step[1] <- signs * b_lhs[1] * f[1, i] + signs * c_lhs[1] * f[2, i]
-    rhs_step[x_steps - 1] <- signs * a_lhs[x_steps + 1] * f[x_steps, i] + signs * b_lhs[x_steps + 1] * f[x_steps + 1, i]
-    rhs <- rhs_m %*% f[-c(1, x_steps + 1), i + signs * 1] + rhs_step
+    
+    fwd_bwd_start <- ifelse(dupire == F, time_steps, 2)
+    fwd_bwd_end <- ifelse(dupire == F, 1, time_steps+1)
+  for(i in fwd_bwd_start:fwd_bwd_end){
+    rhs_step[1] <- signs * -a_lhs[2] * (f[1, i + signs] + f[1, i])
+    rhs_step[x_steps - 1] <- signs * -c_lhs[x_steps] * (f[x_steps + 1, i + signs] + f[x_steps + 1, i])
+    rhs <- rhs_m %*% f[-c(1, x_steps + 1), i + signs] + rhs_step
     
     f[-c(1, x_steps + 1), i] <- tri_diag_solver(a_lhs_mod, b_lhs_mod, c_lhs_mod, rhs)
   }
@@ -190,3 +192,55 @@ crank_nicolson_us <- function(r, Tt, x_min, x_max, time_steps, x_steps, sigma, K
 }
 ##################################################
 
+######################### MC SIMULATOR ###################
+simulate_mc <- function(S0, K, Tt, sigma, r, acc_measure, n_sim = 10000, err_type = 1, true_sol = 0){
+  # call option
+  
+  # d1 <- (log(S0/K) + (r + sigma^2/2) * T)/(sigma * sqrt(T))
+  # d2 <- d1 - sigma * sqrt(T)
+  # phid1 <- pnorm(d1)
+  # call_price <- S0 * phid1 - K * exp(-r * T) * pnorm(d2)
+  mc_err <- 1
+  sims <- c()
+  tot_sims <- 0
+  while(mc_err > acc_measure){
+    tot_sims <- tot_sims + n_sim 
+    # sim1 <- rnorm(n_sim)
+    # W <- sqrt(Tt) * sim1
+    # S_T = S0 * exp((r - 1/2 * sigma^2) * Tt + sigma * W)
+    # simulated_call_payoffs <- exp(-r * Tt) * pmax(K - S_T, 0)
+    # sims <- append(sims, simulated_call_payoffs)
+    price_call <- antithetic_call_put_mc(n_sim=tot_sims, Tt=Tt, r=r, sigma=sigma, S0=S0, K=K)
+    if(err_type == 1){
+      mc_err <- price_call$mc_sd
+        #sd(sims)/sqrt(tot_sims)
+    } else {
+      mc_err <- abs(price_call$price - true_sol)
+    }
+  }
+  
+  return(list(price = price_call$price, 
+              acc = mc_err))
+}
+
+antithetic_call_put_mc <- function(n_sim, Tt, r, sigma, S0, K) {
+  
+  Z <- rnorm(n_sim, mean=0, sd=1)
+  
+  WT <- sqrt(Tt) * Z
+  # antithetic variates
+  ST1 = (S0*exp((r - 0.5*sigma^2)*Tt + sigma*WT))
+  ST2 = (S0*exp((r - 0.5*sigma^2)*Tt + sigma*(-WT)))
+  
+  # put option price and standard error
+  simulated_put_payoffs1 <- exp(-r*Tt)*pmax(K-ST1,0)
+  simulated_put_payoffs2 <- exp(-r*Tt)*pmax(K-ST2,0)
+  # get the average
+  simulated_put_payoffs <- (simulated_put_payoffs1+simulated_put_payoffs2)/2
+  price_put <- mean(simulated_put_payoffs)
+  sterr_put <- sd(simulated_put_payoffs)/sqrt(n_sim)
+  
+  output<-list(price=price_put, mc_sd=sterr_put )
+  return(output)
+  
+}

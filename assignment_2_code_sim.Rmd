@@ -4,7 +4,7 @@ author: "Lucas Johan Boesen"
 date: Sys.Date()
 output: html_document
 params:
-  save_plots: TRUE
+  save_plots: FALSE
 ---
 
 ```{r setup, include=FALSE}
@@ -87,9 +87,9 @@ if(params$save_plots == TRUE){
 ```{r, fig.width = 3, fig.height = 3}
 plot_index <- S_0_to_plot %>% as_tibble() %>% filter(value < 0.5)
 
-f_w_05 <- calculate_delta(S_0, sigma, 1, 0.5)
+f_w_05 <- calculate_delta(S_0, sigma, 1, 0.5, setseed = T)
 
-f_w_0 <- calculate_delta(S_0, sigma, 1, 1e-12)
+f_w_0 <- calculate_delta(S_0, sigma, 1, 1e-12, setseed = T)
 
 
 remove_from_plot <- -c(seq(dim(plot_index)[1]))
@@ -99,7 +99,7 @@ if(params$save_plots == TRUE){
 plot(y = f_w_05$D, 
         x = S_0_to_plot, col = "grey", type = "p",
      xlim = c(0.2, 1.7), ylim = c(-0.1, 1.3), 
-     xlab=("Stock price"), ylab=("Call Delta"), title = ("Est"))
+     xlab=("Stock price"), ylab=("Call Delta"), main = ("Estimated Call Deltas in the Bachelier Model"))
 text(4, 9, "True Delta")+ 
   lines(S_0_to_plot[remove_from_plot],
        true_derr[remove_from_plot], col = "black")+ 
@@ -122,7 +122,7 @@ if(params$save_plots == TRUE){
 ## S.1 - Figure 4
 ```{r, warning = FALSE, message = FALSE}
 seed <- 42
-K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 1000; w <- 0.5;batch_size <- 1; d <- 1
+K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 1000; w <- 0.5;batch_size <- 10; d <- 1
 simulations <- c(400, 600, 1000, 2000, 3000, 4000, 5000, 6000)
 true_delta_err <- w_05_delta_err_7 <- matrix(c(rep(0, length(simulations)*batch_size)), ncol = length(simulations))
 pricing_delta_err_3 <- w_05_delta_err_3 <- w_05_delta_err_7
@@ -216,8 +216,9 @@ if(params$save_plots == TRUE){
   png("s1fig4.png", width = 1000, height = 800)
 }
 plot(y = true_delta_err_mean, simulations, type = 'l', lty = 0, 
-     ylim = c(0.09, 0.4), xlim = c(0, 6000), col = "red",
-     xlab = "Standard deviation of relative hedge error", ylab = "#simulations") +
+     ylim = c(0, 0.4), xlim = c(0, 6000), col = "red",
+     ylab = "Standard deviation of relative hedge error", xlab = "#simulations",
+     main = ("Polynomial call hedging")) +
   lines(y = pricing_delta_err_3_mean, x = simulations, type = 'b', col = "orange")+
   lines(y = pricing_delta_err_4_mean, x = simulations, type = 'b', col = "orange")+
   lines(y = pricing_delta_err_5_mean, x = simulations, type = 'b', col = "orange")+
@@ -244,13 +245,13 @@ text(0, true_delta_err[1]*1.05, paste0("Heding with true Delta"), col = "red", a
 # text(6100, pricing_delta_err_7[8], paste0("7"), col = "orange", adj = 0)
 # text(6100, pricing_delta_err_8[8], paste0("8"), col = "orange", adj = 0)
 # text(6100, pricing_delta_err_9[8], paste0("9"), col = "orange", adj = 0)
-text(6100, w_05_delta_err_3[8], paste0("3"), col = "blue", adj = 0)
-text(6100, w_05_delta_err_4[8], paste0("4"), col = "blue", adj = 0)
-text(6150, w_05_delta_err_5[8], paste0("5"), col = "blue", adj = 0)
-text(6100, w_05_delta_err_6[8], paste0("6"), col = "blue", adj = 0)
-text(6150, w_05_delta_err_7[8], paste0("7"), col = "blue", adj = 0)
-text(6100, w_05_delta_err_8[8], paste0("8"), col = "blue", adj = 0)
-text(6150, w_05_delta_err_9[8], paste0("9"), col = "blue", adj = 0)
+text(6100, w_05_delta_err_3_mean[8], paste0("3"), col = "blue", adj = 0)
+text(6100, w_05_delta_err_4_mean[8], paste0("4"), col = "blue", adj = 0)
+text(6150, w_05_delta_err_5_mean[8], paste0("5"), col = "blue", adj = 0)
+text(6100, w_05_delta_err_6_mean[8], paste0("6"), col = "blue", adj = 0)
+text(6150, w_05_delta_err_7_mean[8], paste0("7"), col = "blue", adj = 0)
+text(6100, w_05_delta_err_8_mean[8], paste0("8"), col = "blue", adj = 0)
+text(6150, w_05_delta_err_9_mean[8], paste0("9"), col = "blue", adj = 0)
 text(0, 0, "K = 1, T = 1, vol = 0.2, dt = 1/52, #repetitions = 1000", adj = 0)
 if(params$save_plots == TRUE){
   dev.off()
@@ -272,7 +273,7 @@ rand_norm_0 <- rnorm(num_ite)
 rand_norm_T <- rnorm(num_ite)
 
 # Simulated call prices
-S_0 <- K * exp(-1/2 * sigma^2 * Tt + sigma * sqrt(Tt) * rand_norm_T)
+S_0 <- K * exp(-1/2 * sigma^2 * Tt + sigma * sqrt(Tt) * rand_norm_0)
 S_0 <- S_0 %>% as_tibble() %>% arrange(value) %>% pull()
 S_T <- S_0 * exp(-1/2 * sigma^2 * Tt + sigma * sqrt(Tt) * rand_norm_T)
 
@@ -324,9 +325,9 @@ if(params$save_plots == TRUE){
 ```{r, fig.width = 3, fig.height = 3}
 plot_index <- S_0_to_plot %>% as_tibble() %>% filter(value < 0.5)
 
-f_w_05 <- calculate_delta(S_0, sigma, 1, 0.5, BS = TRUE)
+f_w_05 <- calculate_delta(S_0, sigma, 1, 0.5, BS = TRUE, setseed = T)
 
-f_w_0 <- calculate_delta(S_0, sigma, 1, 1e-12, BS = TRUE)
+f_w_0 <- calculate_delta(S_0, sigma, 1, 1e-12, BS = TRUE, setseed = T)
 
 remove_from_plot <- -c(seq(dim(plot_index)[1]))
 if(params$save_plots == TRUE){
@@ -335,7 +336,8 @@ if(params$save_plots == TRUE){
 plot(y = f_w_05$D, 
         x = S_0_to_plot, col = "grey", type = "p",
      #xlim = c(0.2, 1.7), ylim = c(-0.1, 1.3), 
-     xlab=("Stock price"), ylab=("Call Delta"), title = ("Est"))
+     xlab=("Stock price"), ylab=("Call Delta"), title = ("Est"),
+     main = ("Estimated Call Deltas in the Black Scholes Model"))
 text(4, 9, "True Delta")+ 
   lines(S_0_to_plot[remove_from_plot],
        true_derr[remove_from_plot], col = "black")+ 
@@ -461,7 +463,9 @@ if(params$save_plots == TRUE){
   png("s2fig4.png", width = 800, height = 600)
 }
 plot(y = true_delta_err_mean, simulations, type = 'l', lty = 0, 
-     xlim = c(0, 6000), ylim = c(0.09, 1), col = "red") +
+     xlim = c(0, 6000), ylim = c(0, 1), col = "red",
+     ylab = "Standard deviation of relative hedge error", xlab = "#simulations",
+     main = ("Polynomial call hedging")) +
   lines(y = pricing_delta_err_3_mean, x = simulations, type = 'b', col = "orange")+
   lines(y = pricing_delta_err_4_mean, x = simulations, type = 'b', col = "orange")+
   lines(y = pricing_delta_err_5_mean, x = simulations, type = 'b', col = "orange")+
@@ -497,7 +501,7 @@ if(params$save_plots == TRUE){
 ## S.3 - Figure 4
 ```{r, warning = FALSE, message = FALSE}
 seed <- 42
-K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 1000; w <- 0.5;batch_size <- 1
+K <- 1; Tt <- 1; sigma <- 0.2; dt <- 1/52; num_rep <- 1000; w <- 0.5;batch_size <- 10
 simulations <- c(400, 600, 1000, 2000, 3000, 4000, 5000, 6000)
 lrm_3 <- lrm_8 <- std_3 <- std_8 <- matrix(c(rep(0, length(simulations)*batch_size)), ncol = length(simulations))
 initial_price <- BS_func(1, K, sigma, Tt)$Price
@@ -511,7 +515,7 @@ for(j in 1:batch_size){
     rand_norm_0 <- rnorm(num_sim)
     S_0 <- K * exp(-1/2 * sigma^2 * Tt + sigma * sqrt(Tt) * rand_norm_0)
     S_0 <- S_0 %>% as_tibble() %>% arrange(value) %>% pull()
-
+    
     ### Calculating using w = 0.5 
     coefs <- NULL
     err <- calculate_hedge_error(dt, Tt, num_rep, K, sigma, St, S0 = S_0, 
@@ -549,7 +553,8 @@ if(params$save_plots == TRUE){
   png("s3fig4.png", width = 800, height = 600)
 }
 plot(y = lrm_3_mean, simulations, type = 'b', ylim = c(0.0, 1), xlim = c(0, 6500), col = "orange",
-     ylab = "Standard deviation of relative hedge error", xlab = "#simulations") +
+     ylab = "Standard deviation of relative hedge error", xlab = "#simulations",
+     main = ("Polynomial call hedging - LRM and Pathwise")) +
   lines(y = lrm_8_mean, x = simulations, type = 'b', col = "orange")+
   lines(y = std_3_mean, x = simulations, type = 'b', col = "blue")+
   lines(y = std_8_mean, x = simulations, type = 'b', col = "blue")
@@ -562,6 +567,29 @@ text(0, true_delta_err_mean[1]+0.02, paste0("Heding with true Delta"), col = "re
 text(2000, 0.8, "Orange curves: LRM method", adj = 0, col = "orange")
 text(2000, 0.875, "Blue curves: Pathwise method", adj = 0, col = "blue")
 text(0, 0, "K = 1, T = 1, vol = 0.2, dt = 1/52, #repetitions = 1000", adj = 0)
+if(params$save_plots == TRUE){
+  dev.off()
+}
+```
+
+## S.3 - Density plot
+```{r}
+if(params$save_plots == TRUE){
+  png("s3densplot.png", width = 800, height = 600)
+}
+bw <- c(0.02837, 0.02281, 0.01074, 0.794)
+par(mfrow=c(2, 2))
+count <- 0
+for(time_to_mat in c(1, 0.5, 0.1, 0.01)){
+  count <- count + 1
+  delta_sim <- calculate_delta(S_0, sigma, time_to_mat, 0.5, BS = TRUE, setseed = T, LRM = T)$D
+  density(delta_sim) %>% 
+    plot(main = paste0("Density for deltas with T = ", time_to_mat), 
+         xlab = paste0("sd = ", round(sd(delta_sim), 5), 
+                       ", mean = ", round(mean(delta_sim), 5), 
+                       ", kernel = gaussian",
+                       ", bw = ", bw[count]))
+}
 if(params$save_plots == TRUE){
   dev.off()
 }
@@ -596,6 +624,7 @@ est_pricing_func <- lm(call_prices ~ poly(S_0, 7, raw=TRUE), data = call_simulat
 # True pricing function
 true_prices <- digital_call(St = S_0, K = K, sigma = sigma, Tt = Tt)$Price
 S_0_to_plot <- S_0 
+
 if(params$save_plots == TRUE){
   png("s4fig2.png", width = 1200, height = 600)
 }
@@ -634,9 +663,9 @@ if(params$save_plots == TRUE){
 ```{r, fig.width = 3, fig.height = 3}
 plot_index <- S_0_to_plot %>% as_tibble() %>% filter(value < 0.5)
 
-f_w_05 <- calculate_delta(S_0, sigma, 1, 0.5, BS = TRUE, digital = TRUE, LRM = TRUE)
+f_w_05 <- calculate_delta(S_0, sigma, 1, 0.5, BS = TRUE, digital = TRUE, LRM = TRUE, setseed = TRUE)
 
-f_w_0 <- calculate_delta(S_0, sigma, 1, 1e-12, BS = TRUE, digital = TRUE, LRM = TRUE)
+f_w_0 <- calculate_delta(S_0, sigma, 1, 1e-12, BS = TRUE, digital = TRUE, LRM = TRUE, setseed = TRUE)
 
 remove_from_plot <- -c(seq(dim(plot_index)[1]))
 if(params$save_plots == TRUE){
@@ -645,7 +674,8 @@ if(params$save_plots == TRUE){
 plot(y = f_w_05$D, 
         x = S_0_to_plot, col = "grey", type = "p",
      #xlim = c(0.2, 1.7), ylim = c(-0.1, 1.3), 
-     xlab=("Stock price"), ylab=("Call Delta"), title = ("Est"), ylim = c(-2, 15), xlim = c(0.1, 2.1))
+     xlab=("Stock price"), ylab=("Call Delta"), title = ("Est"), ylim = c(-2, 15), xlim = c(0.1, 2.1),
+     main = ("Estimated Digital Call Deltas in the Black Scholes Model"))
 text(4, 9, "True Delta")+ 
   lines(S_0_to_plot[remove_from_plot],
        true_derr[remove_from_plot], col = "black")+ 
@@ -751,7 +781,8 @@ if(params$save_plots == TRUE){
   png("s4fig4.png", width = 800, height = 600)
 }
 plot(y = delta_lrm_3_mean, simulations, type = 'b', ylim = c(0.0, 1), xlim = c(0, 6500), col = "blue",
-     ylab = "Standard deviation of relative hedge error", xlab = "#simulations") +
+     ylab = "Standard deviation of relative hedge error", xlab = "#simulations",
+     main = ("Polynomial Digital Call hedging")) +
   lines(y = delta_lrm_8_mean, x = simulations, type = 'b', col = "blue")+
   lines(y = delta_lrm_5_mean, x = simulations, type = 'b', col = "blue")+
   lines(y = delta_lrm_7_mean, x = simulations, type = 'b', col = "blue")+
@@ -765,6 +796,10 @@ text(6100, delta_lrm_3_mean[8], paste0("3"), col = "blue", adj = 0)
 text(6100, delta_lrm_8_mean[8], paste0("8"), col = "blue", adj = 0)
 text(6200, std_3_mean[8], paste0("3"), col = "orange", adj = 0)
 text(6200, std_8_mean[8], paste0("8"), col = "orange", adj = 0)
+text(6100, delta_lrm_5_mean[8], paste0("5"), col = "blue", adj = 0)
+text(6100, delta_lrm_7_mean[8], paste0("7"), col = "blue", adj = 0)
+text(6200, std_5_mean[8], paste0("5"), col = "orange", adj = 0)
+text(6200, std_7_mean[8], paste0("7"), col = "orange", adj = 0)
 text(0, true_delta_err_mean[1]+0.02, paste0("Heding with true Delta"), col = "red", adj = 0)
 text(2000, 0.8, "Orange curves: Price only-regression", adj = 0, col = "orange")
 text(2000, 0.875, "Blue curves: (Price, Delta)-regression", adj = 0, col = "blue")
@@ -800,7 +835,7 @@ if(params$save_plots == TRUE){
   png("s5figeps.png", width = 800, height = 800)
 }
 plot(delta_var[-1], x = eps_seq[-1], xlim = c(.22, 10), type = 'l', col = "red",
-     xlab = "Variance of D") +
+     ylab = "Variance of D", xlab = "epsilon") +
 abline(v = min_delta$...2)
 text(min_delta$...2, min_delta$value*3, paste0("Optimal eps = ", min_delta$...2), adj = 0)
 if(params$save_plots == TRUE){
@@ -823,7 +858,7 @@ rand_norm_T <- rnorm(num_ite)
 eps <- min_delta$...2
 
 # Simulated call prices
-S_0 <- K * exp(-1/2 * sigma^2 * Tt + sigma * sqrt(Tt) * rand_norm_T)
+S_0 <- K * exp(-1/2 * sigma^2 * Tt + sigma * sqrt(Tt) * rand_norm_0)
 S_0 <- S_0 %>% as_tibble() %>% arrange(value) %>% pull()
 S_T <- S_0 * exp(-1/2 * sigma^2 * Tt + sigma * sqrt(Tt) * rand_norm_T)
 
@@ -877,9 +912,11 @@ if(params$save_plots == TRUE){
 ```{r, fig.width = 3, fig.height = 3}
 plot_index <- S_0_to_plot %>% as_tibble() %>% filter(value < 0.5)
 
-f_w_05 <- calculate_delta(S_0, sigma, 1, 0.5, BS = TRUE, digital = TRUE, LRM = TRUE, MM = TRUE, eps = eps)
+f_w_05 <- calculate_delta(S_0, sigma, 1, 0.5, BS = TRUE, digital = TRUE, 
+                          LRM = TRUE, MM = TRUE, eps = eps, setseed = TRUE)
 
-f_w_0 <- calculate_delta(S_0, sigma, 1, 1e-12, BS = TRUE, digital = TRUE, LRM = TRUE, MM = TRUE, eps = eps)
+f_w_0 <- calculate_delta(S_0, sigma, 1, 1e-12, BS = TRUE, digital = TRUE, 
+                         LRM = TRUE, MM = TRUE, eps = eps, setseed = TRUE)
 
 remove_from_plot <- -c(seq(dim(plot_index)[1]))
 if(params$save_plots == TRUE){
@@ -888,7 +925,8 @@ if(params$save_plots == TRUE){
 plot(y = f_w_05$D, 
         x = S_0_to_plot, col = "grey", type = "p",
      #xlim = c(0.2, 1.7), ylim = c(-0.1, 1.3), 
-     xlab=("Stock price"), ylab=("Call Delta"), title = ("Est"), ylim = c(-2, 15), xlim = c(0.1, 2.1))
+     xlab=("Stock price"), ylab=("Call Delta"), ylim = c(-2, 15), xlim = c(0.1, 2.1),
+     main = ("Estimated Call Deltas in the Black Scholes Model using the Mixed Method"))
 text(4, 9, "True Delta")+ 
   lines(S_0_to_plot[remove_from_plot],
        true_derr[remove_from_plot], col = "black")+ 
@@ -995,7 +1033,8 @@ if(params$save_plots == TRUE){
   png("s5fig4.png", width = 800, height = 600)
 }
 plot(y = lrm_3_mean, simulations, type = 'b', ylim = c(0.0, 1), xlim = c(0, 6500), col = "blue",
-     ylab = "Standard deviation of relative hedge error", xlab = "#simulations") +
+     ylab = "Standard deviation of relative hedge error", xlab = "#simulations",
+     main = ("Polynomial Digital Call hedging")) +
   lines(y = lrm_5_mean, x = simulations, type = 'b', col = "blue")+
   lines(y = lrm_7_mean, x = simulations, type = 'b', col = "blue")+
   lines(y = lrm_8_mean, x = simulations, type = 'b', col = "blue")+
@@ -1008,6 +1047,10 @@ text(6100, lrm_3_mean[8], paste0("3"), col = "blue", adj = 0)
 text(6100, lrm_8_mean[8], paste0("8"), col = "blue", adj = 0)
 text(6200, std_3_mean[8], paste0("3"), col = "orange", adj = 0)
 text(6200, std_8_mean[8], paste0("8"), col = "orange", adj = 0)
+text(6100, lrm_5_mean[8], paste0("5"), col = "blue", adj = 0)
+text(6100, lrm_7_mean[8], paste0("7"), col = "blue", adj = 0)
+text(6200, std_5_mean[8], paste0("5"), col = "orange", adj = 0)
+text(6200, std_7_mean[8], paste0("7"), col = "orange", adj = 0)
 text(0, true_delta_err_mean[1]+0.02, paste0("Heding with true Delta"), col = "red", adj = 0)
 text(2000, 0.8, "blue curves: (Price, Delta)-regression", adj = 0, col = "blue")
 text(2000, 0.875, "orange curves: Price only-regression", adj = 0, col = "orange")

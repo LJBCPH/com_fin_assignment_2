@@ -56,8 +56,11 @@ calculate_delta <- function(S0, sigma, Tt, w, K = 1, pol_degree = 7, St = NULL, 
     for(i in 1:(pol_degree+1)){
       Y[,i] <- Y[,i] * (i-1)
     }
-    
-    C <- S_T
+    if(digital == FALSE){
+      C <- pmax(S_T-K, 0)
+    } else {
+      C <- ifelse(S_T >= K, 1, 0)
+    }
     
     X <- ones %>%
       cbind(poly(S0, pol_degree, raw=TRUE)) %>%
